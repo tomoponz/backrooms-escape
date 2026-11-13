@@ -77,7 +77,7 @@ export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0,ga
       hipL=-left*amplitude*drive,hipR=-right*amplitude*drive,
       kneeL=(.12+(run?Math.max(0,Math.cos(phase))*1.45:Math.max(0,-left)*.34))*drive,
       kneeR=(.12+(run?Math.max(0,-Math.cos(phase))*1.45:Math.max(0,-right)*.34))*drive,
-      lean=(run?.42:.07)*drive,twist=Math.sin(phase)*(run?.14:.025)*drive;
+      lean=(run?.42:.07)*drive,twist=Math.sin(phase)*(run?.042:.025)*drive;
     return {
       [bones.leftLeg]:[hipL,0,0],[bones.rightLeg]:[hipR,0,0],
       [bones.leftKnee]:[kneeL,0,0],[bones.rightKnee]:[kneeR,0,0],
@@ -89,7 +89,7 @@ export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0,ga
       [bones.rightElbow]:[(run?.95:.15)*drive+Math.max(0,right)*.32*drive,0,0],
       [bones.spine]:[lean+Math.sin(phase*2)*.025*drive+Math.sin(t*2)*.012,twist,0],
       // Keep the face on the player rather than staring down at the floor.
-      [bones.head]:[-lean*.68,0,Math.sin(t*7.1)*.018*drive]
+      [bones.head]:[-lean*.68,0,Math.sin(t*7.1)*(run?.0045:.018)*drive]
     };
   }
   const phase=t*(mode==='chase'?8.4:6),s=Math.sin(phase)*movement,breath=Math.sin(t*2)*.015;
