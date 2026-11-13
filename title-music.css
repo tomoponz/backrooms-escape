@@ -1,13 +1,24 @@
 /* The image sits behind the rectangular player, never over its controls. */
 #menu { gap: clamp(16px, 2vw, 32px); }
 #menu .title-layout { flex: 1 1 450px; min-width: 0; }
-.title-music { flex: 0 1 700px; width: min(700px, 100%); min-width: 0; margin: auto 1vw auto 0; color: #e8e3cf; }
+.title-music { flex: 0 1 500px; width: min(500px, 100%); min-width: 0; margin: auto 1vw auto 0; color: #e8e3cf; }
 .title-music-cabinet {
-  box-sizing: border-box; width: 100%;
-  padding: 9% 23% 9% 12%;
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  aspect-ratio: 1672 / 941;
+  min-height: 284px;
   background: url('assets/ui/title-crt-frame.png') center / 100% 100% no-repeat;
 }
-.title-music-screen { width: 100%; min-width: 200px; min-height: 200px; aspect-ratio: 16 / 9; background: #060706; }
+/* This rectangle stays inside the curved transparent window at all four corners.
+   The cabinet grows taller on narrow screens to keep the player at least 200px high. */
+.title-music-screen {
+  position: absolute;
+  left: 12.6%; top: 12%;
+  width: 63.3%; height: 70.8%;
+  min-width: 200px; min-height: 200px;
+  background: #060706;
+}
 .title-music-screen iframe { display: block; width: 100%; height: 100%; border: 0; }
 .title-music-consent { display: flex; align-items: flex-start; gap: .5em; padding: 5px 0; font-size: 13px; line-height: 1.5; cursor: pointer; }
 .title-music-consent input { flex: none; margin-top: .3em; accent-color: #cfc29b; }
@@ -20,9 +31,37 @@
   #menu .title-layout { flex: none; margin: 0 auto; }
   .title-music { order: -1; flex: none; margin: 0 auto; }
 }
+/* On narrow screens, use the image's transparent margins to retain a full
+   200px-wide rectangle inside the window without clipping the TV housing. */
+@media (max-width: 500px) {
+  .title-music-cabinet { background-size: 104% 100%; background-position: left center; }
+  .title-music-screen { left: 13%; }
+}
 @media (max-width: 350px) {
   #menu { padding-inline: 0; }
   .title-music { min-width: 0; }
 }
 
-#menu .asset-terms-link, #pause .youtube-privacy-link { color: #c9c1a9; font-size: 12px; text-underline-offset: 3px; }
+#menu .asset-terms-link, #menu .youtube-privacy-link, #pause .youtube-privacy-link { color: #c9c1a9; font-size: 12px; text-underline-offset: 3px; }
+
+/* Center the title independently of the controls and TV. */
+#menu {
+  display: grid;
+  grid-template-columns: minmax(0, 550px) minmax(0, 500px);
+  grid-template-rows: auto auto;
+  justify-content: center;
+  align-content: center;
+  align-items: center;
+  column-gap: clamp(24px, 5vw, 72px);
+  row-gap: 20px;
+}
+#menu #game-title { grid-column: 1 / -1; justify-self: center; width: min(700px, 100%); margin: 0; text-align: center; }
+#menu #game-title .title-logo { width: 100%; max-height: 24vh; object-position: center; }
+#menu .title-layout { grid-column: 1; width: 100%; margin: 0; }
+#menu .title-music { grid-column: 2; width: 100%; margin: 0; }
+@media (max-width: 900px), (max-height: 600px) {
+  #menu { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; }
+  #menu #game-title { order: 0; flex: none; }
+  #menu .title-layout { order: 2; flex: none; width: min(520px, 100%); margin: 0 auto; }
+  #menu .title-music { order: 1; flex: none; width: min(500px, 100%); margin: 0 auto; }
+}
