@@ -1,0 +1,28 @@
+/* The image sits behind the rectangular player, never over its controls. */
+#menu { gap: clamp(16px, 2vw, 32px); }
+#menu .title-layout { flex: 1 1 450px; min-width: 0; }
+.title-music { flex: 0 1 700px; width: min(700px, 100%); min-width: 0; margin: auto 1vw auto 0; color: #e8e3cf; }
+.title-music-cabinet {
+  box-sizing: border-box; width: 100%;
+  padding: 9% 23% 9% 12%;
+  background: url('assets/ui/title-crt-frame.png') center / 100% 100% no-repeat;
+}
+.title-music-screen { width: 100%; min-width: 200px; min-height: 200px; aspect-ratio: 16 / 9; background: #060706; }
+.title-music-screen iframe { display: block; width: 100%; height: 100%; border: 0; }
+.title-music-consent { display: flex; align-items: flex-start; gap: .5em; padding: 5px 0; font-size: 13px; line-height: 1.5; cursor: pointer; }
+.title-music-consent input { flex: none; margin-top: .3em; accent-color: #cfc29b; }
+.title-music-status, .title-music-notice, .title-music-privacy { margin: 5px 0; font-size: 12px; line-height: 1.5; text-shadow: 0 1px 4px #000; }
+.title-music-privacy summary { font-size: 13px !important; padding: 4px 0 !important; letter-spacing: 0 !important; }
+.title-music-privacy p { max-width: 60em; }
+.title-music-notice a, .title-music-privacy a { color: #e8e3cf; }
+@media (max-width: 900px), (max-height: 600px) {
+  #menu { flex-direction: column; align-items: center; justify-content: flex-start; }
+  #menu .title-layout { flex: none; margin: 0 auto; }
+  .title-music { order: -1; flex: none; margin: 0 auto; }
+}
+@media (max-width: 350px) {
+  #menu { padding-inline: 0; }
+  .title-music { min-width: 0; }
+}
+
+#menu .asset-terms-link, #pause .youtube-privacy-link { color: #c9c1a9; font-size: 12px; text-underline-offset: 3px; }

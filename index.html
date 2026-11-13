@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="ui-skin.css">
   <link rel="stylesheet" href="ui-art.css">
   <link rel="stylesheet" href="ui-frames.css">
+  <link rel="stylesheet" href="title-music.css">
   <link rel="icon" href="data:,">
 </head>
 <body>
@@ -101,6 +102,7 @@
         </details>
         <p class="warning">追跡・突然の音・暗い表現があります。</p>
         <div class="intro-footer"><button id="fullscreen-menu" class="text-button" type="button">全画面</button><button id="credits-open" class="text-button">素材・ライセンス</button></div>
+        <a class="asset-terms-link" href="ASSET-TERMS.md" target="_blank" rel="noopener">Third-party asset terms</a>
         <div id="fullscreen-status" role="status" aria-live="polite"></div>
         <div id="error" role="alert"></div>
       </div>
@@ -133,6 +135,7 @@
       <button id="fullscreen-pause" class="secondary" type="button">全画面</button>
       <button id="retry-pause" class="secondary">最初からやり直す</button>
       <button id="title-pause" class="text-button">タイトルへ</button>
+      <a class="youtube-privacy-link" href="youtube-privacy.html" target="_blank" rel="noopener">YouTube 音楽とプライバシー</a>
       <div class="pause-help"><span><kbd>WASD</kbd> 移動</span><span><kbd>SHIFT</kbd> 走る</span><span><kbd>E</kbd> 調べる・拾う</span><span><kbd>F</kbd> ライト</span><span><kbd>1–4</kbd> 選択 <kbd>Q</kbd> 使用</span><span><kbd>I</kbd> 持ち物</span><span><kbd>TAB</kbd> 探索記録</span></div>
       <p class="warning">やり直し・タイトルへ戻ると、今回の探索はリセットされます。<br>マウスが固定されないときはドラッグ、または矢印キーで視点を操作。</p>
     </div>
@@ -185,6 +188,7 @@
   <noscript><div class="noscript">JavaScript が無効です。このゲームを遊ぶには、ブラウザーの JavaScript を有効にしてください。</div></noscript>
   <script type="module" src="game.js"></script>
   <script type="module" src="ui-art.js"></script>
-<a href="ASSET-TERMS.md" style="position:fixed;bottom:3px;right:8px;font-size:11px;color:#aaa;z-index:50" target="_blank" rel="noopener">Third-party asset terms</a>
+  <script type="module" src="title-music.js"></script>
+
 </body>
 </html>
