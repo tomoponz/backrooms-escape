@@ -1,23 +1,25 @@
 /* The image sits behind the rectangular player, never over its controls. */
 #menu { gap: clamp(16px, 2vw, 32px); }
 #menu .title-layout { flex: 1 1 450px; min-width: 0; }
-.title-music { flex: 0 1 500px; width: min(500px, 100%); min-width: 0; margin: auto 1vw auto 0; color: #e8e3cf; }
+.title-music { flex: 0 1 564px; width: min(564px, 100%); min-width: 0; margin: auto 1vw auto 0; color: #e8e3cf; }
 .title-music-cabinet {
   position: relative;
   box-sizing: border-box;
   width: 100%;
-  aspect-ratio: 1672 / 941;
+  aspect-ratio: 564 / 284;
   min-height: 284px;
-  background: url('assets/ui/title-crt-frame.png') center / 100% 100% no-repeat;
 }
+.title-music-cabinet::before, .title-music-cabinet::after { content: ''; position: absolute; pointer-events: none; }
+.title-music-cabinet::before { left: 10%; top: 9%; width: 68%; height: 79%; background: #000; }
+.title-music-cabinet::after { inset: 0; background: url('assets/ui/title-crt-frame.png') center / 100% 100% no-repeat; }
 /* This rectangle stays inside the curved transparent window at all four corners.
    The cabinet grows taller on narrow screens to keep the player at least 200px high. */
 .title-music-screen {
   position: absolute;
-  left: 12.6%; top: 12%;
-  width: 63.3%; height: 70.8%;
+  z-index: 1; left: 12.6%; top: 47.4%; transform: translateY(-50%);
+  width: 63.3%; aspect-ratio: 16 / 9;
   min-width: 200px; min-height: 200px;
-  background: #060706;
+  background: #000;
 }
 .title-music-screen iframe { display: block; width: 100%; height: 100%; border: 0; }
 .title-music-consent { display: flex; align-items: flex-start; gap: .5em; padding: 5px 0; font-size: 13px; line-height: 1.5; cursor: pointer; }
@@ -34,7 +36,7 @@
 /* On narrow screens, use the image's transparent margins to retain a full
    200px-wide rectangle inside the window without clipping the TV housing. */
 @media (max-width: 500px) {
-  .title-music-cabinet { background-size: 104% 100%; background-position: left center; }
+  .title-music-cabinet::after { background-size: 104% 100%; background-position: left center; }
   .title-music-screen { left: 13%; }
 }
 @media (max-width: 350px) {
@@ -47,10 +49,11 @@
 /* Center the title independently of the controls and TV. */
 #menu {
   display: grid;
-  grid-template-columns: minmax(0, 550px) minmax(0, 500px);
+  grid-template-columns: minmax(0, 550px) 564px;
   grid-template-rows: auto auto;
   justify-content: center;
-  align-content: center;
+  align-content: start; /* Safe fallback for browsers without safe alignment. */
+  align-content: safe center;
   align-items: center;
   column-gap: clamp(24px, 5vw, 72px);
   row-gap: 20px;
@@ -63,5 +66,5 @@
   #menu { display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 20px; }
   #menu #game-title { order: 0; flex: none; }
   #menu .title-layout { order: 2; flex: none; width: min(520px, 100%); margin: 0 auto; }
-  #menu .title-music { order: 1; flex: none; width: min(500px, 100%); margin: 0 auto; }
+  #menu .title-music { order: 1; flex: none; width: min(564px, 100%); margin: 0 auto; }
 }
