@@ -67,24 +67,26 @@ export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0,ga
   if(type==='skinstealer'){
     // The imported skeleton has mirrored arm axes: +X on the thigh turns
     // the leg BACK, whereas +X on the upper arm turns the arm FORWARD.
-    // A running stride must oppose the arm on the same side, not shuffle it.
+    // Full sprint: a longer stride, large arm follow-through and folded
+    // recovery knee. Ankle extension accentuates the rear-foot push-off.
+    // Arm axes oppose the same-side leg in world space.
     const velocity=clamp(Number.isFinite(speed)?speed:0,0,6),run=mode==='chase',
       drive=clamp(velocity/(run?3.4:1.5),0,1),
-      phase=Number.isFinite(gaitPhase)?gaitPhase:t*velocity*Math.PI/1.05,
-      left=Math.sin(phase),right=-left,amplitude=run?.82:.32,
+      phase=Number.isFinite(gaitPhase)?gaitPhase:t*velocity*Math.PI/1.25,
+      left=Math.sin(phase),right=-left,amplitude=run?1.05:.32,
       hipL=-left*amplitude*drive,hipR=-right*amplitude*drive,
-      kneeL=(.12+Math.max(0,-left)*(run?1.12:.34))*drive,
-      kneeR=(.12+Math.max(0,-right)*(run?1.12:.34))*drive,
-      lean=(run?.30:.07)*drive,twist=Math.sin(phase)*(run?.085:.025)*drive;
+      kneeL=(.12+(run?Math.max(0,Math.cos(phase))*1.45:Math.max(0,-left)*.34))*drive,
+      kneeR=(.12+(run?Math.max(0,-Math.cos(phase))*1.45:Math.max(0,-right)*.34))*drive,
+      lean=(run?.42:.07)*drive,twist=Math.sin(phase)*(run?.14:.025)*drive;
     return {
       [bones.leftLeg]:[hipL,0,0],[bones.rightLeg]:[hipR,0,0],
       [bones.leftKnee]:[kneeL,0,0],[bones.rightKnee]:[kneeR,0,0],
-      [bones.leftFoot]:[-(hipL+kneeL)*.42,0,0],
-      [bones.rightFoot]:[-(hipR+kneeR)*.42,0,0],
-      [bones.leftArm]:[-left*(run?.72:.24)*drive+.12*drive,0,-.05*drive],
-      [bones.rightArm]:[-right*(run?.72:.24)*drive+.12*drive,0,.05*drive],
-      [bones.leftElbow]:[(run?.75:.15)*drive+Math.max(0,left)*.18*drive,0,0],
-      [bones.rightElbow]:[(run?.75:.15)*drive+Math.max(0,right)*.18*drive,0,0],
+      [bones.leftFoot]:[-(hipL+kneeL)*.52+(run?Math.max(0,-left)*.20:0)*drive,0,0],
+      [bones.rightFoot]:[-(hipR+kneeR)*.52+(run?Math.max(0,-right)*.20:0)*drive,0,0],
+      [bones.leftArm]:[-left*(run?1.20:.24)*drive+.12*drive,0,-.05*drive],
+      [bones.rightArm]:[-right*(run?1.20:.24)*drive+.12*drive,0,.05*drive],
+      [bones.leftElbow]:[(run?.95:.15)*drive+Math.max(0,left)*.32*drive,0,0],
+      [bones.rightElbow]:[(run?.95:.15)*drive+Math.max(0,right)*.32*drive,0,0],
       [bones.spine]:[lean+Math.sin(phase*2)*.025*drive+Math.sin(t*2)*.012,twist,0],
       // Keep the face on the player rather than staring down at the floor.
       [bones.head]:[-lean*.68,0,Math.sin(t*7.1)*.018*drive]
@@ -129,7 +131,7 @@ export async function createSkinnedActor(renderer,model,{url,type}={}){
     upload();
   }
   pose();
-  return {enabled:true,rig,vertexCount:rig.vertexCount,update(dt,state={}){if(disposed)return {rigged:false};const step=Number.isFinite(dt)?clamp(dt,0,.1):0;time+=step;accumulator+=step;gaitPhase=(gaitPhase+step*clamp(Number.isFinite(state.speed)?state.speed:0,0,6)*Math.PI/1.05)%(Math.PI*2);
+  return {enabled:true,rig,vertexCount:rig.vertexCount,update(dt,state={}){if(disposed)return {rigged:false};const step=Number.isFinite(dt)?clamp(dt,0,.1):0;time+=step;accumulator+=step;gaitPhase=(gaitPhase+step*clamp(Number.isFinite(state.speed)?state.speed:0,0,6)*Math.PI/1.25)%(Math.PI*2);
       if(accumulator>=1/30){accumulator=0;pose(state)}return {rigged:true}},
     reset(){if(disposed)return;time=0;accumulator=0;gaitPhase=0;pose()},
     dispose(){if(disposed)return;g.bindVertexArray(mesh.vao);for(const a of old){if(a.buffer){g.bindBuffer(g.ARRAY_BUFFER,a.buffer);g.vertexAttribPointer(a.location,a.size,a.type,a.normalized,a.stride,a.offset)}if(a.enabled)g.enableVertexAttribArray(a.location);else g.disableVertexAttribArray(a.location)}g.bindVertexArray(null);g.bindBuffer(g.ARRAY_BUFFER,null);for(const b of buffers)g.deleteBuffer(b);disposed=true}};

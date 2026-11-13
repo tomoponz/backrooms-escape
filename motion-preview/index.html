@@ -5,10 +5,10 @@ const room=await r.load('../assets/models/original-backrooms.glb');room.matrix=M
 let t=0,last=performance.now();const scale=2.05/(m.max[1]-m.min[1]),centre=[(m.min[0]+m.max[0])/2,m.min[1],(m.min[2]+m.max[2])/2];
 window.preview={reset(){t=0;a.reset()},time:0};
 function frame(now){const dt=Math.min(.05,(now-last)/1000);last=now;t+=dt;window.preview.time=t;a.update(dt,{speed:4.4,mode:'chase'});
-const cycle=t%9,front=cycle>=4.5,z=front?-8+(cycle-4.5)*1.5:0;
+const cycle=t%6,front=cycle>=3,z=front?-12+(cycle-3)*4.4:0;
 m.matrix=M.mul(M.pose(-5,0,z,0,scale),M.trs(centre.map(v=>-v)));
 const camera=front?{eye:[-5,1.62,2],yaw:0,pitch:-.1,fov:64}:{eye:[-1.6,1.35,3.3],yaw:-.8,pitch:-.1,fov:64};
-r.render([room,m],camera,{ambient:.8,fog:[.035,.03,.02],fogNear:14,fogFar:30,flash:true});requestAnimationFrame(frame)}requestAnimationFrame(frame);window.ready=true;
+r.render([room,m],camera,{renderScale:.75,ambient:.8,fog:[.035,.03,.02],fogNear:14,fogFar:30,flash:true});requestAnimationFrame(frame)}requestAnimationFrame(frame);window.ready=true;
 const button=document.createElement('button');button.textContent='Record 9 second preview';button.style='position:fixed;right:20px;top:20px;padding:12px';document.body.append(button);
 button.onclick=()=>{t=0;a.reset();const chunks=[],rec=new MediaRecorder(document.querySelector('canvas').captureStream(30),{mimeType:'video/webm;codecs=vp8'});rec.ondataavailable=e=>chunks.push(e.data);rec.onstop=()=>{const link=document.createElement('a');link.href=URL.createObjectURL(new Blob(chunks,{type:'video/webm'}));link.download='skinstealer-run-preview.webm';link.textContent='Download preview';link.style='position:fixed;right:20px;top:65px;color:white';document.body.append(link);button.textContent='Recording complete'};rec.start();button.textContent='Recording...';setTimeout(()=>rec.stop(),9000)};
 </script></html>
