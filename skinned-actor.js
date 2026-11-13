@@ -1,5 +1,5 @@
 // CPU glTF skinning for the two user-selected characters. Neither GLB contains
-// animation clips: movement below is a modest procedural pose, not a claim
+// animation clips: movement below is a procedural skeletal pose, not a claim
 // that the source assets provide walking or transformation animation.
 import {M} from './engine.js';
 import {readGLB} from './renderer-resources.js';
@@ -60,10 +60,36 @@ export function deformSkinnedRig(rig,rotations={}){
 
 const DEFINITIONS={
   hazmat:{leftLeg:'LeftUpLeg',rightLeg:'RightUpLeg',leftKnee:'LeftLeg',rightKnee:'RightLeg',leftArm:'LeftArm',rightArm:'RightArm',spine:'Spine',head:'Head'},
-  skinstealer:{leftLeg:'thigh_L_60',rightLeg:'thigh_R_65',leftKnee:'shin_L_59',rightKnee:'shin_R_64',leftArm:'upper_arm_L_24',rightArm:'upper_arm_R_47',spine:'spine_001_53',head:'spine_006_0'}
+  skinstealer:{leftLeg:'thigh_L_60',rightLeg:'thigh_R_65',leftKnee:'shin_L_59',rightKnee:'shin_R_64',leftArm:'upper_arm_L_24',rightArm:'upper_arm_R_47',leftElbow:'forearm_L_23',rightElbow:'forearm_R_46',leftFoot:'foot_L_58',rightFoot:'foot_R_63',spine:'spine_001_53',head:'spine_006_0'}
 };
-export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0}={}){
+export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0,gaitPhase}={}){
   const bones=DEFINITIONS[type];if(!bones)throw Error('Unknown actor type');const movement=clamp(Number.isFinite(speed)?speed/2.5:0,0,1),t=Number.isFinite(time)?time:0,c=clamp(Number.isFinite(collapse)?collapse:0,0,1);
+  if(type==='skinstealer'){
+    // The imported skeleton has mirrored arm axes: +X on the thigh turns
+    // the leg BACK, whereas +X on the upper arm turns the arm FORWARD.
+    // A running stride must oppose the arm on the same side, not shuffle it.
+    const velocity=clamp(Number.isFinite(speed)?speed:0,0,6),run=mode==='chase',
+      drive=clamp(velocity/(run?3.4:1.5),0,1),
+      phase=Number.isFinite(gaitPhase)?gaitPhase:t*velocity*Math.PI/1.05,
+      left=Math.sin(phase),right=-left,amplitude=run?.82:.32,
+      hipL=-left*amplitude*drive,hipR=-right*amplitude*drive,
+      kneeL=(.12+Math.max(0,-left)*(run?1.12:.34))*drive,
+      kneeR=(.12+Math.max(0,-right)*(run?1.12:.34))*drive,
+      lean=(run?.30:.07)*drive,twist=Math.sin(phase)*(run?.085:.025)*drive;
+    return {
+      [bones.leftLeg]:[hipL,0,0],[bones.rightLeg]:[hipR,0,0],
+      [bones.leftKnee]:[kneeL,0,0],[bones.rightKnee]:[kneeR,0,0],
+      [bones.leftFoot]:[-(hipL+kneeL)*.42,0,0],
+      [bones.rightFoot]:[-(hipR+kneeR)*.42,0,0],
+      [bones.leftArm]:[-left*(run?.72:.24)*drive+.12*drive,0,-.05*drive],
+      [bones.rightArm]:[-right*(run?.72:.24)*drive+.12*drive,0,.05*drive],
+      [bones.leftElbow]:[(run?.75:.15)*drive+Math.max(0,left)*.18*drive,0,0],
+      [bones.rightElbow]:[(run?.75:.15)*drive+Math.max(0,right)*.18*drive,0,0],
+      [bones.spine]:[lean+Math.sin(phase*2)*.025*drive+Math.sin(t*2)*.012,twist,0],
+      // Keep the face on the player rather than staring down at the floor.
+      [bones.head]:[-lean*.68,0,Math.sin(t*7.1)*.018*drive]
+    };
+  }
   const phase=t*(mode==='chase'?8.4:6),s=Math.sin(phase)*movement,breath=Math.sin(t*2)*.015;
   // The selected hazmat source is a T-pose. The authored local X axes of
   // both upper arms point in opposite world-Z directions, so the same
@@ -84,16 +110,27 @@ export async function createSkinnedActor(renderer,model,{url,type}={}){
   const response=await fetch(url);if(!response.ok)throw Error(`Actor model HTTP ${response.status}`);
   const rig=buildSkinnedRig(await response.arrayBuffer());if(model.meshes?.length!==1)throw Error('Actor mesh does not match rig');
   for(const name of Object.values(DEFINITIONS[type])){const index=rig.names.get(name);if(index===undefined||index<0||!rig.skin.joints.includes(index))throw Error(`Actor skeleton is missing ${name}`)}
-  const g=renderer.gl,mesh=model.meshes[0],old=[],buffers=[];let disposed=false,time=0,accumulator=0;
+  const g=renderer.gl,mesh=model.meshes[0],old=[],buffers=[];let disposed=false,time=0,accumulator=0,gaitPhase=0;
   g.bindVertexArray(mesh.vao);
   for(const [location,data] of [[0,rig.posedPositions],[1,rig.posedNormals]]){
     old.push({location,buffer:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING),size:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_SIZE),type:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_TYPE),normalized:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_NORMALIZED),stride:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_STRIDE),offset:g.getVertexAttribOffset(location,g.VERTEX_ATTRIB_ARRAY_POINTER),enabled:g.getVertexAttrib(location,g.VERTEX_ATTRIB_ARRAY_ENABLED)});
     const b=g.createBuffer();if(!b)throw Error('Unable to create skin buffer');g.bindBuffer(g.ARRAY_BUFFER,b);g.bufferData(g.ARRAY_BUFFER,data,g.DYNAMIC_DRAW);g.enableVertexAttribArray(location);g.vertexAttribPointer(location,3,g.FLOAT,false,0,0);buffers.push(b);}
   g.bindVertexArray(null);g.bindBuffer(g.ARRAY_BUFFER,null);
   const upload=()=>{for(const [i,data] of [rig.posedPositions,rig.posedNormals].entries()){g.bindBuffer(g.ARRAY_BUFFER,buffers[i]);g.bufferSubData(g.ARRAY_BUFFER,0,data)}g.bindBuffer(g.ARRAY_BUFFER,null)};
-  deformSkinnedRig(rig,proceduralActorPose(type,0));upload();
-  return {enabled:true,rig,vertexCount:rig.vertexCount,update(dt,state={}){if(disposed)return {rigged:false};const step=Number.isFinite(dt)?clamp(dt,0,.1):0;time+=step;accumulator+=step;
-      if(accumulator>=1/30){accumulator=0;deformSkinnedRig(rig,proceduralActorPose(type,time,state));upload()}return {rigged:true}},
-    reset(){if(disposed)return;time=0;accumulator=0;deformSkinnedRig(rig,proceduralActorPose(type,0));upload()},
+  const bindFloor=deformSkinnedRig(rig).minY;
+  function pose(state={}) {
+    const bounds=deformSkinnedRig(rig,proceduralActorPose(type,time,{...state,gaitPhase}));
+    // Plant the lowest foot at the original floor height. This is visual only:
+    // navigation, chase speed, capture radius and the grace window are unchanged.
+    if(type==='skinstealer'){
+      const lift=bindFloor-bounds.minY;
+      for(let i=1;i<rig.posedPositions.length;i+=3)rig.posedPositions[i]+=lift;
+    }
+    upload();
+  }
+  pose();
+  return {enabled:true,rig,vertexCount:rig.vertexCount,update(dt,state={}){if(disposed)return {rigged:false};const step=Number.isFinite(dt)?clamp(dt,0,.1):0;time+=step;accumulator+=step;gaitPhase=(gaitPhase+step*clamp(Number.isFinite(state.speed)?state.speed:0,0,6)*Math.PI/1.05)%(Math.PI*2);
+      if(accumulator>=1/30){accumulator=0;pose(state)}return {rigged:true}},
+    reset(){if(disposed)return;time=0;accumulator=0;gaitPhase=0;pose()},
     dispose(){if(disposed)return;g.bindVertexArray(mesh.vao);for(const a of old){if(a.buffer){g.bindBuffer(g.ARRAY_BUFFER,a.buffer);g.vertexAttribPointer(a.location,a.size,a.type,a.normalized,a.stride,a.offset)}if(a.enabled)g.enableVertexAttribArray(a.location);else g.disableVertexAttribArray(a.location)}g.bindVertexArray(null);g.bindBuffer(g.ARRAY_BUFFER,null);for(const b of buffers)g.deleteBuffer(b);disposed=true}};
 }
