@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音ごとの音量 | Backrooms Escape</title>
+<link rel="stylesheet" href="audio-settings.css">
+</head>
+<body>
+<main>
+  <header><a class="back" href="index.html">← ゲームへ戻る</a><p class="eyebrow">BACKROOMS ESCAPE / AUDIO</p><h1>音ごとの音量</h1><p>再生ボタンで音を一つずつ試聴し、スライダーでゲーム中の音量を調整できます。100% がこれまでの音量です。</p><p>「試聴全体の音量」はこの画面だけの設定です。ゲームの「音量」とは別に調整できます。音が重なると共通のコンプレッサーが働くため、ゲーム中の聞こえ方は単独の試聴と変わることがあります。</p></header>
+  <section class="controls" aria-labelledby="preview-heading"><h2 id="preview-heading">試聴</h2><label for="preview-volume">試聴全体の音量 <output id="preview-volume-value">65%</output></label><input id="preview-volume" type="range" min="0" max="100" step="1" value="65"><div class="buttons"><button id="preview-stop" type="button">試聴を停止</button><button id="preview-mute" type="button" aria-pressed="false">試聴をミュート</button><button id="restore-defaults" type="button">すべて100%に戻す</button></div><p id="preview-status" role="status" aria-live="polite">試聴する音を選んでください。</p><p id="save-status" role="status" aria-live="polite"></p></section>
+  <div id="audio-groups"></div>
+  <p class="footnote">音ごとの設定はこのブラウザーに自動保存され、同じアドレスで開いたゲームに反映されます。音源未設定の項目は、音源が設定されるまでゲームでも無音です。</p>
+</main><script type="module" src="audio-settings.js"></script>
+</body></html>

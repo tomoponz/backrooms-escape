@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "video": "assets/intro/campus-sdr.mp4",
+  "placeholderSeconds": 5,
+  "captions": [
+    {"at": 0, "text": "いつもの校舎。見慣れた扉。"},
+    {"at": 1.8, "text": "扉を開ける。足元が消えた。"},
+    {"at": 3.6, "text": "目を開けると、見知らぬ黄色い部屋にいた。"}
+  ]
+}

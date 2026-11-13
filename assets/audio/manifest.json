@@ -1,0 +1,39 @@
+{
+  "ambience": "backrooms-buzzing-sound-effect.mp3",
+  "player_walk": [
+    "kenney-impact/footstep_carpet_000.ogg",
+    "kenney-impact/footstep_carpet_001.ogg",
+    "kenney-impact/footstep_carpet_002.ogg"
+  ],
+  "player_run": [
+    "kenney-impact/footstep_carpet_000.ogg",
+    "kenney-impact/footstep_carpet_001.ogg",
+    "kenney-impact/footstep_carpet_002.ogg"
+  ],
+  "enemy_step": [
+    "kenney-impact/footstep_concrete_000.ogg",
+    "kenney-impact/footstep_concrete_001.ogg",
+    "kenney-impact/footstep_concrete_002.ogg"
+  ],
+  "enemy_breath": null,
+  "alert": "kenney-impact/impactMetal_heavy_000.ogg",
+  "door": "kenney-rpg/doorOpen_1.ogg",
+  "flash": null,
+  "capture": "bacteria-screech.wav",
+  "escape": null,
+  "death": null,
+  "locked": "kenney-rpg/metalLatch.ogg",
+  "pickup": null,
+  "power": null,
+  "relay": null,
+  "skin_voice": "skinstealer-extreme-approved.mp3",
+  "chant": "2okyou.wav",
+  "warning_tone": "581604__samsterbirdies__beep-error-2.wav",
+  "bust_fall": "the-stone-falls-to-the-ground.mp3",
+  "pry": "700705__mathewhenry__metal-door-squeaking-8-medium.wav",
+  "locker_open": "442370__toddcircle__squeaky-metal-locker-open-close.wav",
+  "locker_close": "442370__toddcircle__squeaky-metal-locker-open-close.wav",
+  "transform": "tanweraman-flesh-growing-horror-392360.mp3",
+  "heartbeat": "pwlpl-heartbeat-tense-377250.mp3",
+  "chase_bgm": "yarzur_ofc-sfx6-horror-suspense-hiding-heartbeat-loop-323052.mp3"
+}

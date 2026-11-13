@@ -1,0 +1,9 @@
+.item-slots { position:absolute; left:50%; bottom:12px; transform:translateX(-50%); width:min(620px,calc(100% - 24px)); display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; pointer-events:none; }
+.item-slot { min-width:0; min-height:48px; display:flex; align-items:center; gap:7px; padding:6px 8px; box-sizing:border-box; background:#11140eee; border:1px solid #b5ad7b88; color:#f3edd6; font-size:18px; }
+.item-slot.selected { border:2px solid #f1dfa0; padding:5px 7px; background:#332e1bf5; }
+.item-slot-key { flex:none; min-width:21px; text-align:center; border:1px solid #c9c099; font-weight:700; }
+.item-slot-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.item-slot-count { margin-left:auto; flex:none; font-size:.8em; }
+.item-slot-hint { grid-column:1/-1; text-align:center; font-size:15px; line-height:1; color:#f2e9cd; }
+.stamina #water-count { display:none; }
+@media(max-width:600px){.item-slots{gap:3px;bottom:8px}.item-slot{min-height:42px;padding:4px;gap:3px;font-size:15px}.item-slot.selected{padding:3px}.item-slot-key{min-width:17px}.item-slot-hint{font-size:13px}}

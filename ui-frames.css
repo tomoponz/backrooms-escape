@@ -1,0 +1,80 @@
+/* Owner-approved five frame assets, original PNG bytes.
+   Images provide surfaces only: native controls and live content remain. */
+#menu .settings-guide[open],#menu .briefing[open],#credits .credits-panel {
+ background: url("assets/ui/frames/panel.png") center / 111.5% 123% no-repeat;
+ border:0; box-shadow:none; padding:28px 34px;
+}
+#menu .settings-guide[open]>summary,#menu .briefing[open]>summary { margin-bottom:12px; }
+#pause .panel { background:url("assets/ui/frames/panel.png") center / 111.5% 123% no-repeat; padding:32px 40px; }
+#menu button.art-button,#pause button.art-button,#result button.art-button,
+#credits button.art-button,.inventory-overlay button,.intro-sequence button {
+ background-image:url("assets/ui/frames/buttons.png");
+ background-size:104.3% 369.4%; background-position:50% 7.4%; background-repeat:no-repeat;
+ background-color:transparent!important; border:0!important; box-shadow:none;
+ padding:12px 26px; min-width:140px; min-height:52px;
+}
+#menu button.art-button:hover,#pause button.art-button:hover,#result button.art-button:hover,
+#credits button.art-button:hover,.inventory-overlay button:hover,.intro-sequence button:hover {
+ background-position:50% 50.5%;
+}
+#menu button.art-button:active,#pause button.art-button:active,#result button.art-button:active,
+#credits button.art-button:active,.inventory-overlay button:active,.intro-sequence button:active { background-position:50% 93.5%; }
+#menu button.art-button:focus-visible,#pause button.art-button:focus-visible,#result button.art-button:focus-visible,
+.inventory-overlay button:focus-visible,.intro-sequence button:focus-visible { outline:2px solid #eee2b5;outline-offset:4px; }
+#menu .quality-choice button { min-width:74px; padding:10px 18px; }
+#menu .intro-footer button.art-button { min-width:130px; }
+.inventory-panel,#map-wrap>div {
+ background:#090c09e8 url("assets/ui/frames/detail.png") center / 100% 100% no-repeat;
+ border:0;box-shadow:none;padding:clamp(30px,4vw,52px);
+}
+.inventory-header,.inventory-item { border-color:#b5b08b28; }
+#map-wrap>div { min-height:260px; }
+.intro-sequence-panel {
+ background: url("assets/ui/frames/intro.png") center / 100% 100% no-repeat;
+ border:0;box-shadow:none;padding:32px 5% 26px;
+}
+.intro-sequence-heading { margin-bottom:12px; }
+.intro-sequence-video { max-height:54vh; }
+.intro-sequence-controls { margin-top:14px; }
+.intro-sequence-status { font-size:15px; }
+.intro-sequence-placeholder { background:#090b08; border:0; }
+#menu input[type="range"],.intro-sequence input[type="range"] {
+ -webkit-appearance:none;appearance:none;background:transparent;min-height:40px;height:40px;cursor:pointer;
+}
+#menu input[type="range"]::-webkit-slider-runnable-track,.intro-sequence input[type="range"]::-webkit-slider-runnable-track {
+ height:14px;background:url("assets/ui/frames/slider.png") 50% 20.8% / 102.9% 635% no-repeat;border:0;border-radius:0;
+}
+#menu input[type="range"]::-webkit-slider-thumb,.intro-sequence input[type="range"]::-webkit-slider-thumb {
+ -webkit-appearance:none;appearance:none;width:24px;height:36px;margin-top:-11px;border:0;border-radius:0;
+ background:url("assets/ui/frames/slider.png") 27.8% 85.6% / 1054% 228% no-repeat;
+}
+#menu input[type="range"]:focus-visible,.intro-sequence input[type="range"]:focus-visible { outline:2px solid #e8dbad;outline-offset:3px; }
+#menu input[type="range"]:focus-visible::-webkit-slider-thumb,.intro-sequence input[type="range"]:focus-visible::-webkit-slider-thumb {
+ background-position:72.3% 85.6%;
+}
+#menu input[type="range"]::-moz-range-track,.intro-sequence input[type="range"]::-moz-range-track {
+ height:14px;background:url("assets/ui/frames/slider.png") 50% 20.8% / 102.9% 635% no-repeat;border:0;
+}
+#menu input[type="range"]::-moz-range-thumb,.intro-sequence input[type="range"]::-moz-range-thumb {
+ width:24px;height:36px;border:0;background:url("assets/ui/frames/slider.png") 27.8% 85.6% / 1054% 228% no-repeat;
+}
+@media(max-width:700px),(max-height:600px) {
+ #menu .settings-guide[open],#menu .briefing[open],#pause .panel,#credits .credits-panel { padding:24px; }
+ .inventory-panel,#map-wrap>div { padding:28px; }
+ .intro-sequence-panel { padding:22px 5%; }
+ .intro-sequence-video { max-height:45vh; }
+ #menu button.art-button,#pause button.art-button,#result button.art-button { min-height:48px; padding:10px 22px; }
+}
+/* Explicit component selectors override their legacy button shorthand. */
+.inventory-overlay button.inventory-close,.inventory-overlay button.inventory-use,
+.intro-sequence button.intro-sequence-pause,.intro-sequence button.intro-sequence-skip,.intro-sequence button.intro-sequence-begin {
+ color:#f0ead5; text-shadow:0 1px 3px #000; background-image:url("assets/ui/frames/buttons.png");
+ background-size:104.3% 369.4%;background-position:50% 7.4%;background-repeat:no-repeat;
+}
+.inventory-overlay button.inventory-close:hover,.inventory-overlay button.inventory-use:hover,
+.intro-sequence button:hover { background-position:50% 50.5%; }
+.inventory-panel { padding:40px; }
+@media(max-width:700px),(max-height:600px) {
+ .inventory-panel { padding:34px 40px; }
+ .inventory-item { gap:12px; flex-wrap:wrap; }
+}

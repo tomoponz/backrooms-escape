@@ -1,0 +1,222 @@
+[
+  {
+    "name": "start",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      314,
+      81,
+      706,
+      217
+    ]
+  },
+  {
+    "name": "resume",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      375,
+      276,
+      650,
+      409
+    ]
+  },
+  {
+    "name": "settings",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      377,
+      469,
+      650,
+      599
+    ]
+  },
+  {
+    "name": "help",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      252,
+      654,
+      770,
+      781
+    ]
+  },
+  {
+    "name": "back",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      390,
+      831,
+      627,
+      958
+    ]
+  },
+  {
+    "name": "fullscreen",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      316,
+      1004,
+      707,
+      1133
+    ]
+  },
+  {
+    "name": "title",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      230,
+      1183,
+      794,
+      1302
+    ]
+  },
+  {
+    "name": "retry",
+    "file": "backrooms-menu-eight-labels-preview.png",
+    "box": [
+      282,
+      1345,
+      749,
+      1473
+    ]
+  },
+  {
+    "name": "high",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      431,
+      58,
+      592,
+      222
+    ]
+  },
+  {
+    "name": "medium",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      440,
+      316,
+      589,
+      473
+    ]
+  },
+  {
+    "name": "low",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      427,
+      564,
+      596,
+      722
+    ]
+  },
+  {
+    "name": "on",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      373,
+      824,
+      655,
+      964
+    ]
+  },
+  {
+    "name": "off",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      373,
+      1065,
+      650,
+      1204
+    ]
+  },
+  {
+    "name": "selected",
+    "file": "backrooms-menu-options-preview.png",
+    "box": [
+      282,
+      1302,
+      746,
+      1456
+    ]
+  },
+  {
+    "name": "volume",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      393,
+      62,
+      630,
+      182
+    ]
+  },
+  {
+    "name": "quality",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      394,
+      255,
+      631,
+      373
+    ]
+  },
+  {
+    "name": "controls",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      278,
+      443,
+      745,
+      557
+    ]
+  },
+  {
+    "name": "move",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      393,
+      622,
+      632,
+      735
+    ]
+  },
+  {
+    "name": "look",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      279,
+      799,
+      745,
+      914
+    ]
+  },
+  {
+    "name": "run",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      399,
+      970,
+      626,
+      1091
+    ]
+  },
+  {
+    "name": "items",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      188,
+      1150,
+      838,
+      1269
+    ]
+  },
+  {
+    "name": "success",
+    "file": "backrooms-settings-controls-clear-labels-alpha-v2.png",
+    "box": [
+      276,
+      1339,
+      746,
+      1455
+    ]
+  }
+]

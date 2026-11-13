@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11130f">
+  <meta name="description" content="日常から突然見知らぬ空間に落ち、出口を探す一人称ホラーゲーム。">
+  <title>BACKROOMS / 落ちた先</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="inventory.css">
+  <link rel="stylesheet" href="item-slots.css">
+  <link rel="stylesheet" href="intro.css">
+  <link rel="stylesheet" href="death-sequence.css">
+  <link rel="stylesheet" href="infection-sequence.css">
+  <link rel="stylesheet" href="ui-skin.css">
+  <link rel="stylesheet" href="ui-art.css">
+  <link rel="stylesheet" href="ui-frames.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <canvas id="view" aria-label="バックルーム探索ゲームの3D画面">このゲームは WebGL 対応のブラウザーが必要です。</canvas>
+  <div id="vignette" aria-hidden="true"></div>
+  <div id="grain" aria-hidden="true"></div>
+  <img id="film" src="assets/ui/film.png" alt="" aria-hidden="true">
+  <img id="locker-view" src="assets/ui/locker.png" alt="" aria-hidden="true">
+  <div id="danger" aria-hidden="true"></div>
+  <div id="struggle" hidden role="status" aria-live="assertive">
+    <strong id="struggle-title">振りほどけ！</strong>
+    <div id="struggle-bar" role="meter" aria-label="振りほどきゲージ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="struggle-fill"></i></div>
+    <span id="struggle-help"><kbd>SPACE</kbd> または クリック を連打（押しっぱなしでも可）</span>
+  </div>
+
+  <div id="hud" hidden aria-label="探索状況">
+    <div id="field-markers" aria-hidden="true"></div>
+    <div id="waypoint" hidden aria-hidden="true"></div>
+    <div id="compass" hidden aria-hidden="true"><i id="compass-arrow"></i><span id="compass-label"></span><b id="compass-distance"></b></div>
+    <div id="maintenance-control" hidden aria-hidden="true">
+      <div class="plate-head">設備保守</div>
+      <strong>EXIT 扉回路</strong>
+      <span id="maintenance-state">電源遮断 / OFF</span>
+      <div class="breaker"><i></i></div>
+      <b>復旧 / RESET</b>
+      <small>レバーを上げて保持</small>
+    </div>
+    <div class="hud-top">
+      <div class="location-block">
+        <span id="area-index" class="eyebrow">ARCHIVE / 00</span>
+        <h1 id="area-name">LEVEL 0</h1>
+        <small id="phase">出口を探す</small>
+      </div>
+      <div class="hud-right">
+        <span id="chapter-progress" class="chapter-progress"></span>
+        <span id="count">EXIT / 探索中</span>
+        <span id="timer" aria-label="経過時間">00:00</span>
+        <small id="lamp">LIGHT / 未取得</small>
+        <small id="escapes" aria-label="振りほどける残り回数"></small>
+      </div>
+    </div>
+    <div id="crosshair" aria-hidden="true">+</div>
+    <div id="objective">
+      <span class="objective-kicker">次の行動</span>
+      <span id="objective-label">避難口を探す</span>
+      <small id="bearing"></small>
+    </div>
+    <div id="threat-label" class="threat-label" role="status"></div>
+    <div id="interaction" role="status"></div>
+    <div id="message" role="status" aria-live="polite"></div>
+    <div class="hud-bottom">
+      <div class="control-strip" aria-label="操作方法">
+        <span><kbd>WASD</kbd> 移動</span><span><kbd>SHIFT</kbd> 走る</span><span><kbd>E</kbd> 調べる / 拾う</span><span><kbd>F</kbd> ライト</span><span><kbd>1–4</kbd> 選択 <kbd>Q</kbd> 使用</span><span><kbd>I</kbd> 所持品</span><span><kbd>TAB</kbd> 探索記録</span><span><kbd>ESC</kbd> 一時停止</span>
+      </div>
+      <div class="stamina"><span>STAMINA <small>持久力</small></span><div role="meter" aria-label="持久力" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100"><i id="stamina-fill"></i></div><small id="water-count">水 ×0 / 選択して Q で体力+60</small></div>
+    </div>
+  </div>
+
+  <div id="map-wrap" hidden aria-label="探索した範囲の記録">
+    <div>
+      <div class="map-heading"><span class="eyebrow">EXPLORATION NOTES / 探索記録</span><span class="map-close"><kbd>TAB</kbd> 閉じる</span></div>
+      <p id="journal-note" class="journal-note"></p>
+      <canvas id="map" width="640" height="640" aria-label="現在地と、見つけた通路・設備だけを記録した地図"></canvas>
+      <div class="map-footer"><p><span class="legend player-legend">現在地</span><span class="legend exit-legend">出口</span><span class="legend maintenance-legend">配電盤</span></p><small class="map-live-warning">時間は進んでいます。<kbd>TAB</kbd> で閉じる</small></div>
+    </div>
+  </div>
+
+  <section id="menu" class="overlay menu-overlay" aria-labelledby="game-title">
+    <div class="title-layout">
+      <div class="panel intro">
+        <div class="intro-header"><span class="eyebrow">LEVEL 0 / 所在不明</span><span class="archive-mark">記録 001</span></div>
+        <h2 id="game-title"><img class="title-logo" src="assets/title-logo.png" alt="BACKROOMS"><em>落ちた先</em></h2>
+        <div class="load" role="status"><span id="load-label">空間を読み込み中…</span><div><i id="load-fill"></i></div></div>
+        <button id="start" class="primary-action" disabled>始める</button>
+        <div class="play-mode"><label for="difficulty">探索モード</label><select id="difficulty"><option value="normal">標準 / 追跡あり</option><option value="easy">やさしい / 敵がゆっくり</option><option value="explore">探索 / 敵なし</option></select></div>
+        <details class="settings-guide">
+          <summary>設定</summary>
+          <div class="options" aria-label="プレイ設定">
+            <label for="quality">画質<select id="quality"><option value="high">標準</option><option value="low">軽量 / 動作優先</option></select></label>
+            <label for="volume" class="volume-option">音量<input id="volume" type="range" min="0" max="100" value="65"></label>
+            <a href="audio-settings.html" target="_blank" rel="noopener">音ごとの音量を調整・試聴</a>
+            <label class="check" for="motion"><input id="motion" type="checkbox"><span>揺れ・点滅を有効にする<small>苦手な方はオフのまま</small></span></label>
+          </div>
+        </details>
+        <p class="warning">追跡・突然の音・暗い表現があります。</p>
+        <div class="intro-footer"><button id="fullscreen-menu" class="text-button" type="button">全画面</button><button id="credits-open" class="text-button">素材・ライセンス</button></div>
+        <div id="fullscreen-status" role="status" aria-live="polite"></div>
+        <div id="error" role="alert"></div>
+      </div>
+
+      <details class="briefing" aria-label="探索の手引き"><summary>操作方法</summary>
+        <span class="eyebrow">目標</span>
+        <h3>出口を探し、3か所の配電盤を上げて脱出。</h3>
+        <div class="quick-controls" aria-label="基本操作">
+          <span><kbd>WASD</kbd> 移動</span><span>マウス 視点</span><span><kbd>SHIFT</kbd> 走る</span><span><kbd>E</kbd> 調べる・拾う</span><span><kbd>SPACE</kbd> 振りほどく</span><span><kbd>ESC</kbd> 一時停止</span>
+        </div>
+        <details class="controls-guide">
+          <summary>詳しい操作とヒント</summary>
+          <dl><div><dt><kbd>F</kbd></dt><dd>ライト切替</dd></div><div><dt><kbd>1–4</kbd> / <kbd>Q</kbd></dt><dd>アイテム選択 / 使用</dd></div><div><dt><kbd>I</kbd></dt><dd>持ち物（時間は停止）</dd></div><div><dt><kbd>TAB</kbd></dt><dd>探索記録（時間は進む）</dd></div></dl>
+          <p>床の矢印と画面上のコンパスをたどって出口へ。扉が開かなければ <kbd>E</kbd> で調べ、3か所の配電盤で <kbd>E</kbd> を約1.2秒長押ししてブレーカーを上げます。</p>
+          <p>捕まったら <kbd>SPACE</kbd> を連打（押しっぱなしでも可）。振りほどけるのは2回までです。</p>
+          <p>走るのをやめると持久力が回復します。拾った水は数字キーで選び、<kbd>Q</kbd> または <kbd>I</kbd> から使えます。</p>
+          <p>視点はマウスまたは <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>。マウスが固定されないときは画面を押したままドラッグ。</p>
+        </details>
+      </details>
+    </div>
+    <div class="corner" aria-hidden="true">蛍光灯の音だけが、続いている。</div>
+  </section>
+
+  <section id="pause" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="pause-title" aria-describedby="pause-description">
+    <div class="panel compact">
+      <span class="eyebrow">探索中断</span>
+      <h2 id="pause-title">一時停止</h2>
+      <p id="pause-description">敵も時間も、止まっています。</p>
+      <button id="resume">再開</button>
+      <button id="fullscreen-pause" class="secondary" type="button">全画面</button>
+      <button id="retry-pause" class="secondary">最初からやり直す</button>
+      <button id="title-pause" class="text-button">タイトルへ</button>
+      <div class="pause-help"><span><kbd>WASD</kbd> 移動</span><span><kbd>SHIFT</kbd> 走る</span><span><kbd>E</kbd> 調べる・拾う</span><span><kbd>F</kbd> ライト</span><span><kbd>1–4</kbd> 選択 <kbd>Q</kbd> 使用</span><span><kbd>I</kbd> 持ち物</span><span><kbd>TAB</kbd> 探索記録</span></div>
+      <p class="warning">やり直し・タイトルへ戻ると、今回の探索はリセットされます。<br>マウスが固定されないときはドラッグ、または矢印キーで視点を操作。</p>
+    </div>
+  </section>
+
+  <section id="result" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="result-title" aria-describedby="result-text">
+    <div class="panel compact result-panel">
+      <span id="result-tag" class="eyebrow"></span>
+      <h2 id="result-title"></h2>
+      <p id="result-text"></p>
+      <div id="result-stats" aria-label="探索時間"></div>
+      <p id="result-detail" class="result-detail"></p>
+      <button id="retry">もう一度</button>
+      <button id="title-result" class="text-button">タイトルへ</button>
+    </div>
+  </section>
+
+  <section id="credits" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="credits-title">
+    <div class="panel credits-panel">
+      
+      <h2 id="credits-title">素材・ライセンス</h2>
+      <p class="license-warning">本作は端末内だけで利用する非公開プロトタイプです。<br>素材ファイルを含むフォルダーを公開・配布しないでください。</p>
+      <ul>
+        <li><a href="https://sketchfab.com/3d-models/backrooms-vr-1a5c397f0a43408fa38b09ea5c041149" target="_blank" rel="noopener noreferrer">Backrooms VR</a><span>VTX / CC BY 4.0</span><small>部屋・壁・床・天井・照明の立体形状と材質を使用。配置境界と接続口を加工し、既存の扉も再利用。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/backrooms-vr-room-baked-b3dc718ea39248feb0120f1c6171419d" target="_blank" rel="noopener noreferrer">Backrooms VR room [Baked]</a><span>abhayexe / Sketchfab Standard</span><small>元の部屋と床の窪みを保持して配置。上部通路を歩行。展示・配布前に利用条件を確認。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/original-backrooms-e5c6b30995ff442d9852a1dd697aaef1" target="_blank" rel="noopener noreferrer">Original Backrooms</a><span>Huuxloc / CC BY 4.0</span><small>部屋全体の立体形状と材質を3か所に配置。共有境界と開口を加工して接続。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/dreamcore-liminal-space-875b0005014d4b42bf1e9b2ff53ed4c4" target="_blank" rel="noopener noreferrer">Dreamcore liminal space</a><span>neutron star / CC BY 4.0</span><small>既存の草地・空・背景を出口の先に配置。回転・移動と境界の加工。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/backrooms-wallpapers-2c36079726a84d5db6369c7261d73152" target="_blank" rel="noopener noreferrer">Backrooms Wallpapers</a><span>Huuxloc / CC Attribution（版は要確認）</span><small>旧版用の保存素材。現在の部屋は上記の元モデルを使用。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/almond-water-from-backrooms-c4d96c6f79cc4eabb1f2c758312baf15" target="_blank" rel="noopener noreferrer">Almond water from Backrooms</a><span><a href="https://sketchfab.com/pedrohmm123" target="_blank" rel="noopener noreferrer">pedrohmm123</a> / CC BY 4.0</span><small>原本の形状・テクスチャを使用。実行時に縮小・配置し、拾うと非表示。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/bacteria-kane-pixels-backrooms-1fb71d64d7164ae8b6271922b3378e0b" target="_blank" rel="noopener noreferrer">Bacteria - Kane PIxels Backrooms</a><span>Roman Trace / CC BY 4.0</span><small>追跡する敵として再利用。キャラクター等の権利は展示前に要確認。</small></li>
+        <li><a href="https://opengameart.org/content/monster-sfx" target="_blank" rel="noopener noreferrer">Monster SFX</a><span>marcelofg55 / CC0</span><small>捕獲時の鳴き声を短く切り出し、音量とフェードを調整。</small></li>
+        <li><a href="https://kenney.nl/assets/impact-sounds" target="_blank" rel="noopener noreferrer">Impact Sounds</a><span>Kenney / CC0</span><small>プレイヤーと敵の足音、警戒音。</small></li>
+        <li><a href="https://kenney.nl/assets/rpg-audio" target="_blank" rel="noopener noreferrer">RPG Audio</a><span>Kenney / CC0</span><small>扉とラッチの音。</small></li>
+        <li><a href="https://freesound.org/people/giddster/sounds/336530/" target="_blank" rel="noopener noreferrer">Breathing, panicked</a><span>giddster / 掲載作品は CC0</span><small>敵の呼吸音。使用中のHQ MP3プレビュー版の展示利用条件は未確認。</small></li>
+        <li><span>Backrooms buzzing sound effect</span><small>ローカル試作用。作者・展示や配布の許諾は未確認。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/electrical-box-free-383a234d6d80421fbe67080048cbbc70" target="_blank" rel="noopener noreferrer">Electrical box - FREE</a><span>Mathieu Godard / CC BY 4.0</span><small>配電盤として壁に配置。縮小・回転のみ。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/office-chair-69208f9465c346308a2bf423c7e5b8f6" target="_blank" rel="noopener noreferrer">Office Chair</a><span>Tomaso / CC BY 4.0</span><small>各部屋に配置。縮小・回転のみ。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/vent-low-poly-realist-91ee1772857540e6bdc3aebcc696b3ae" target="_blank" rel="noopener noreferrer">Vent [Low Poly Realist]</a><span>Islide / CC BY 4.0</span><small>壁の換気口として配置。縮小・回転のみ。</small></li>
+        <li><a href="https://polyhaven.com/a/cardboard_box_01" target="_blank" rel="noopener noreferrer">Cardboard Box 01</a><span>Poly Haven / CC0</span><small>.blend からメッシュと拡散テクスチャを取り出して GLB 化。</small></li>
+        <li><a href="https://sketchfab.com/3d-models/sculpture-bust-of-roza-loewenfeld-fc6e731a0131471ba8e45511c7ea9996" target="_blank" rel="noopener noreferrer">Sculpture Bust of Róża Loewenfeld</a><span>Virtual Museums of Małopolska / CC0</span><small>胸像の山と、各部屋の胸像。</small></li>
+        <li><a href="https://freesound.org/people/mathewhenry/sounds/700705/" target="_blank" rel="noopener noreferrer">Metal Door Squeaking 8 (Medium)</a><span>MathewHenry / CC0</span><small>バールでこじ開ける音。無加工。</small></li>
+        <li><a href="https://freesound.org/people/toddcircle/sounds/442370/" target="_blank" rel="noopener noreferrer">squeaky metal locker open close</a><span>toddcircle / CC0</span><small>ロッカーの開閉。1本の録音の前半と後半を再生。</small></li>
+        <li><span>Pixabay の音源4点</span><span>Pixabay Content License</span><small>The stone falls to the ground（胸像・穴）、flesh growing horror / tanweraman（変貌）、heartbeat tense / pwlpl（心拍）、horror suspense hiding heartbeat loop / yarzur_ofc（追跡中）。無加工。単体での再配布は不可。</small></li>
+      </ul>
+      <p><a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0 ↗</a> · <a href="https://sketchfab.com/licenses" target="_blank" rel="noopener noreferrer">Sketchfab license ↗</a><br>音には上記の既存素材を使用しています。詳細は AUDIO.md を参照してください。</p>
+      <button id="credits-close">閉じる</button>
+    </div>
+  </section>
+  <noscript><div class="noscript">JavaScript が無効です。このゲームを遊ぶには、ブラウザーの JavaScript を有効にしてください。</div></noscript>
+  <script type="module" src="game.js"></script>
+  <script type="module" src="ui-art.js"></script>
+<a href="ASSET-TERMS.md" style="position:fixed;bottom:3px;right:8px;font-size:11px;color:#aaa;z-index:50" target="_blank" rel="noopener">Third-party asset terms</a>
+</body>
+</html>

@@ -1,0 +1,114 @@
+/* 2026-11-13: the owner's generated UI images (assets/ui, unmodified copies).
+   Each image keeps its transparent margins; background-size/position below show
+   only its measured opaque region (alpha > 128), so nothing had to be cropped.
+   Text always sits on the dark or light body of an image with a shadow, and the
+   centre of the view stays clear. */
+
+/* Film-edge wear: edges only, the centre of the image is transparent. */
+#film { position: fixed; inset: 0; z-index: 1; width: 100%; height: 100%; object-fit: fill; opacity: .4; pointer-events: none; user-select: none; }
+body[data-game-state="warning"] #film, body[data-game-state="death-transition"] #film, body[data-game-state="lost"] #film { display: none; }
+
+/* Inside of the locker: shown while hidden, faded during entry and exit. */
+#locker-view { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; object-fit: fill; opacity: 0; pointer-events: none; user-select: none; transition: opacity .25s linear; }
+
+/* Four-slot item bar. Opaque region of inventory.png: x .6–99.5 %, y 24.9–74.6 %. */
+.item-slots { width: min(600px, 47vw); aspect-ratio: 5.97; bottom: 30px; gap: 0; padding: .9% 1%; background: url(assets/ui/inventory.png) 54% 49.5% / 101.1% 201.1% no-repeat; }
+.item-slot { position: relative; min-height: 0; padding: 0; gap: 0; display: block; background: none; border: 0; font-size: clamp(12px, 1.15vw, 16px); }
+.item-slot.selected { padding: 0; border: 0; background: radial-gradient(ellipse at center, #f1dfa02e, transparent 72%); box-shadow: inset 0 0 0 2px #f1dfa0; }
+.item-slot-key { position: absolute; top: 9%; left: 7%; min-width: 1.5em; border-color: #c9c09990; background: #0c0d0acc; font-size: .9em; }
+.item-slot-icon { position: absolute; left: 50%; top: 46%; height: 74%; max-width: 62%; transform: translate(-50%, -50%); object-fit: contain; filter: drop-shadow(0 2px 3px #000c); }
+.item-slot-icon[hidden] { display: none; }
+.item-slot-name { position: absolute; left: 7%; bottom: 7%; max-width: 60%; font-size: .82em; color: #efe8cf; text-shadow: 0 1px 2px #000, 0 0 5px #000; }
+.item-slot.empty .item-slot-name { opacity: .32; }
+.item-slot-count { position: absolute; right: 7%; bottom: 7%; margin: 0; font-size: .82em; color: #f7e9b4; text-shadow: 0 1px 2px #000, 0 0 5px #000; }
+.item-slot-hint { position: absolute; left: 0; right: 0; top: 100%; padding-top: 5px; font-size: clamp(12px, 1.1vw, 15px); text-shadow: 0 1px 3px #000; }
+@media (max-width: 820px), (max-height: 600px) { .item-slots { width: min(430px, 60vw); bottom: 24px; } }
+
+/* Notification tape. Opaque region of notice.png: x 1–99.1 %, y 26.2–71.7 %. */
+#message { padding: 18px 56px 20px; background: url(assets/ui/notice.png) 52% 48.1% / 101.9% 219.8% no-repeat; color: #f6efd9; text-shadow: 0 1px 2px #000, 0 0 6px #000; min-width: min(420px, 70vw); }
+
+/* Aged evacuation arrow as the compass needle. Opaque region of marker.png: x 24.1–75.7 %, y 18.6–81.5 %. */
+#compass-arrow { width: 1.35em; height: 1.65em; clip-path: none; background: url(assets/ui/marker.png) 49.8% 50.1% / 193.8% 158.9% no-repeat; filter: drop-shadow(0 0 3px currentColor); }
+/* The same arrow floats over the objective itself when it is on screen. */
+#waypoint { position: absolute; width: clamp(34px, 3.4vw, 52px); aspect-ratio: .82; transform: translate(-50%, -115%) rotate(180deg); background: url(assets/ui/marker.png) 49.8% 50.1% / 193.8% 158.9% no-repeat; opacity: .92; filter: drop-shadow(0 2px 4px #000) drop-shadow(0 0 6px var(--waypoint, #74f2a4)); pointer-events: none; }
+#waypoint[hidden] { display: none; }
+
+/* Classic warning dialog frame. Opaque region of warning.png: x 2.6–97.5 %, y 17.5–82.3 %. */
+.infection-sequence-panel { width: min(340px, 62vw); aspect-ratio: 1.953; border: 0; background: url(assets/ui/warning.png) 50.7% 49.7% / 105.3% 154.3% no-repeat; box-shadow: none; filter: drop-shadow(0 8px 14px #000b); color: #1b1b1b; font-size: clamp(12px, 1.1vw, 14px); line-height: 1.35; }
+.infection-sequence-title { position: absolute; left: 4%; top: 2.5%; right: 4%; padding: 0; border: 0; background: none; color: #fff; font-size: .82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.infection-sequence-title::before { color: #ffd98a; }
+.infection-sequence-subtitle { padding: 0; margin: 15% 7% 0; color: #111; }
+.infection-sequence-panel p { margin: 2% 7% 0; color: #2a2a2a; }
+.infection-sequence-footer { position: absolute; left: 7%; right: 7%; bottom: 24%; padding: 0; border: 0; color: #6b2a22; }
+
+/* Brush-written character for the game-over card. Opaque region of death.png: x 20.3–78.5 %, y 14.5–90.8 %. */
+.death-sequence-character { width: min(62vmin, 640px); aspect-ratio: 1.143; font-size: 0; color: transparent; background: url(assets/ui/death.png) 48.4% 61.2% / 171.8% 130.9% no-repeat; }
+/* Inside a locker only the prompt and notifications remain. */
+#hud.hiding .hud-top, #hud.hiding .hud-bottom, #hud.hiding #objective, #hud.hiding #compass, #hud.hiding #waypoint, #hud.hiding .item-slots, #hud.hiding #crosshair { opacity: 0; }
+/* Keep the reminder strip clear of the centred item bar. */
+.control-strip { max-width: calc(50vw - min(300px, 23.5vw) - 36px); }
+
+/* Restrained menu surfaces. Approved new image labels await local transfer;
+   existing logo/death artwork remains unchanged. No simulation/audio changes. */
+#menu { background: linear-gradient(90deg,#050604e8,#05060488 65%,#05060455); }
+#menu .title-layout { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:12px; width:min(650px,100%); margin:auto auto auto 7vw; }
+#menu .intro, #pause .panel, #result .panel { background:none; border:0; box-shadow:none; padding:0; width:100%; }
+#menu .intro-header, #menu .corner, #menu h2 em, #pause .eyebrow, #result-tag { display:none; }
+#menu h2 { margin:0 0 16px; }
+#menu .title-logo { width:min(500px,76vw); max-height:25vh; object-fit:contain; object-position:left; }
+#menu button, #pause button, #result button, #credits-close {
+ background:transparent; border:0; border-radius:0; box-shadow:none; color:#eee8d5;
+ font-family:"Yu Mincho","Hiragino Mincho ProN",serif; font-size:clamp(24px,2.4vw,34px);
+ font-weight:400; letter-spacing:.16em; text-shadow:0 2px 8px #000; padding:10px 18px; min-height:48px;
+ width:auto; display:block; margin:3px 0; text-decoration:none;
+}
+#menu button:hover, #pause button:hover, #result button:hover, #credits-close:hover { color:#fff9e5; background:#ffffff08; }
+#menu button:focus-visible,#pause button:focus-visible,#result button:focus-visible,#menu summary:focus-visible,#credits-close:focus-visible {
+ outline:2px solid #ded4b3; outline-offset:5px;
+}
+#menu button:disabled,#pause button:disabled,#result button:disabled { opacity:.4; cursor:not-allowed; }
+#menu .primary-action { margin-top:14px; }
+#menu summary { cursor:pointer; font-family:"Yu Mincho",serif; font-size:26px; letter-spacing:.12em; padding:10px 18px; }
+#menu .settings-guide { border:0; margin:0; }
+#menu .briefing { width:100%; padding:0; margin:0; }
+#menu .briefing[open],#menu .settings-guide[open] { background:#080907f2; padding:12px 20px; }
+#menu .briefing h3 { font-size:22px; margin:18px 0; }
+#menu .options { font-size:18px; line-height:1.6; }
+#menu select { background:#181a15; color:#eee8d5; font-size:18px; border:1px solid #656551; border-radius:0; padding:6px; }
+#menu .options a,#credits a { color:#e3d9b8; }
+#menu .options .check small { font-size:15px; }
+#menu .play-mode { font-size:17px; margin:12px 18px; }
+#menu .intro-footer { justify-content:flex-start; flex-wrap:wrap; gap:16px; margin:6px 0; }
+#menu .intro-footer button { font-size:19px; letter-spacing:.07em; }
+#menu .warning { margin-left:18px; font-size:15px; }
+#menu .load { max-width:440px; font-size:15px; margin:12px 18px; }
+#menu .quick-controls,#menu .controls-guide { font-size:18px; line-height:1.7; }
+#pause { background:#030403dc; }
+#pause .panel { max-width:540px; }
+#pause h2 { font:26px "Yu Mincho",serif; letter-spacing:.18em; margin:0 0 24px; color:#c8c1ae; }
+#pause .pause-help { display:none; }
+#pause .warning { font-size:16px; line-height:1.8; margin-top:24px; }
+#pause-description { font-size:16px; color:#b6b19e; }
+#result { background:#000; }
+#result .result-panel { max-width:620px; text-align:center; }
+#result button { margin:8px auto; }
+#result-title { font-family:"Yu Mincho",serif; }
+body[data-game-state="lost"] #result .result-panel::before { content:""; display:block; height:min(45vh,420px); width:min(50vmin,380px); margin:0 auto 22px; background:url(assets/ui/death.png) center/contain no-repeat; }
+body[data-game-state="lost"] #result-title,body[data-game-state="lost"] #result-text,
+#result-stats,#result-detail { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+body[data-game-state="won"] #result { background:#0b110de6; }
+body[data-game-state="won"] #result-text { font-size:19px; line-height:1.9; margin:28px 0; }
+#credits .panel { background:#080907f5; border:0; box-shadow:none; }
+#credits h2 { font:28px "Yu Mincho",serif; }
+#credits p,#credits li { font-size:17px; line-height:1.7; }
+#credits li small { font-size:15px; }
+#area-index,.objective-kicker { display:none; }
+@media(max-width:700px),(max-height:600px) {
+ #menu { align-items:flex-start; padding:24px; }
+ #menu .title-layout { margin:0 auto; }
+ #menu .title-logo { max-height:22vh; }
+ #menu summary,#menu button,#pause button,#result button { font-size:24px; min-height:44px; }
+ #menu .options { grid-template-columns:1fr; }
+ #pause,#result { padding:24px; }
+ #pause .panel,#result .panel { margin:auto; }
+}
