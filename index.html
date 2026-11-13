@@ -90,20 +90,17 @@
         <div class="intro-header"><span class="eyebrow">LEVEL 0 / 所在不明</span><span class="archive-mark">記録 001</span></div>
         <div class="load" role="status"><span id="load-label">空間を読み込み中…</span><div><i id="load-fill"></i></div></div>
         <button id="start" class="primary-action" disabled>始める</button>
-        <div class="play-mode"><label for="difficulty">探索モード</label><select id="difficulty"><option value="normal">標準 / 追跡あり</option><option value="easy">やさしい / 敵がゆっくり</option><option value="explore">探索 / 敵なし</option></select></div>
         <details class="settings-guide">
           <summary>設定</summary>
+          <div class="play-mode"><label for="difficulty">探索モード</label><select id="difficulty"><option value="normal">標準 / 追跡あり</option><option value="easy">やさしい / 敵がゆっくり</option><option value="explore">探索 / 敵なし</option></select></div>
           <div class="options" aria-label="プレイ設定">
             <label for="quality">画質<select id="quality"><option value="high">標準</option><option value="low">軽量 / 動作優先</option></select></label>
             <label for="volume" class="volume-option">音量<input id="volume" type="range" min="0" max="100" value="65"></label>
             <a href="audio-settings.html" target="_blank" rel="noopener">音ごとの音量を調整・試聴</a>
             <label class="check" for="motion"><input id="motion" type="checkbox"><span>揺れ・点滅を有効にする<small>苦手な方はオフのまま</small></span></label>
           </div>
+          <div class="settings-fullscreen"><button id="fullscreen-menu" class="text-button" type="button">全画面</button><div id="fullscreen-status" role="status" aria-live="polite"></div></div>
         </details>
-        <p class="warning">追跡・突然の音・暗い表現があります。</p>
-        <div class="intro-footer"><button id="fullscreen-menu" class="text-button" type="button">全画面</button><button id="credits-open" class="text-button">素材・ライセンス</button></div>
-        <a class="asset-terms-link" href="ASSET-TERMS.md" target="_blank" rel="noopener">Third-party asset terms</a> <a class="youtube-privacy-link" href="youtube-privacy.html" target="_blank" rel="noopener">動画のプライバシー・規約</a>
-        <div id="fullscreen-status" role="status" aria-live="polite"></div>
         <div id="error" role="alert"></div>
       </div>
 
@@ -122,6 +119,8 @@
           <p>視点はマウスまたは <kbd>↑</kbd> <kbd>↓</kbd> <kbd>←</kbd> <kbd>→</kbd>。マウスが固定されないときは画面を押したままドラッグ。</p>
         </details>
       </details>
+      <p class="warning menu-warning">追跡・突然の音・暗い表現があります。</p>
+      <div class="menu-legal"><button id="credits-open" class="text-button" type="button">素材・規約</button></div>
     </div>
     <div class="corner" aria-hidden="true">蛍光灯の音だけが、続いている。</div>
   </section>
@@ -157,7 +156,8 @@
     <div class="panel credits-panel">
       
       <h2 id="credits-title">素材・ライセンス</h2>
-      <p class="license-warning">本作は端末内だけで利用する非公開プロトタイプです。<br>素材ファイルを含むフォルダーを公開・配布しないでください。</p>
+      <p class="credits-terms"><a href="ASSET-TERMS.md" target="_blank" rel="noopener">素材の利用条件</a> ・ <a href="youtube-privacy.html" target="_blank" rel="noopener">動画のプライバシー・規約</a></p>
+      <p class="license-warning">素材ごとに利用条件が異なります。出典と利用条件をご確認ください。</p>
       <ul>
         <li><a href="https://sketchfab.com/3d-models/backrooms-vr-1a5c397f0a43408fa38b09ea5c041149" target="_blank" rel="noopener noreferrer">Backrooms VR</a><span>VTX / CC BY 4.0</span><small>部屋・壁・床・天井・照明の立体形状と材質を使用。配置境界と接続口を加工し、既存の扉も再利用。</small></li>
         <li><a href="https://sketchfab.com/3d-models/backrooms-vr-room-baked-b3dc718ea39248feb0120f1c6171419d" target="_blank" rel="noopener noreferrer">Backrooms VR room [Baked]</a><span>abhayexe / Sketchfab Standard</span><small>元の部屋と床の窪みを保持して配置。上部通路を歩行。展示・配布前に利用条件を確認。</small></li>
