@@ -2,6 +2,7 @@
 // No source triangles, GLB, room walls, or navigation data are modified.
 import {M} from './engine.js';
 import {readGLB} from './renderer-resources.js';
+import {loadModelBuffer} from './model-source.js';
 const SOURCE_URL='https://sketchfab.com/3d-models/backrooms-vr-1a5c397f0a43408fa38b09ea5c041149';
 const VR_MATRIX=M.pose(0,.11756357598021501,-27.6);
 const SOURCE_HINGE=Object.freeze([-36.516,0,-13.807]);
@@ -40,6 +41,5 @@ export function createWarningDoor(renderer,sourceModel,geometry,{hinge=[-1.30,0,
   return model;
 }
 export async function loadWarningDoor(renderer,sourceModel,{url='assets/models/level0.glb',...placement}={}){
-  const response=await fetch(url);if(!response.ok)throw Error(`Door model HTTP ${response.status}`);
-  return createWarningDoor(renderer,sourceModel,extractWarningDoor(await response.arrayBuffer()),placement);
+  return createWarningDoor(renderer,sourceModel,extractWarningDoor(await loadModelBuffer(url)),placement);
 }

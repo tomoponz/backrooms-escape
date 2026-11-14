@@ -1,26 +1,26 @@
 /* Approved original PNG sheets: CSS windows only, no pixel alteration. */
-.art-start{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:392;--ah:136;--bx:49.68354%;--by:5.78571%;--bw:261.22449%;--bh:1129.41176%;}
-.art-resume{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:275;--ah:133;--bx:50.06676%;--by:19.67213%;--bw:372.36364%;--bh:1154.88722%;}
-.art-settings{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:273;--ah:130;--bx:50.19973%;--by:33.35704%;--bw:375.09158%;--bh:1181.53846%;}
-.art-help{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:518;--ah:127;--bx:49.80237%;--by:46.41590%;--bw:197.68340%;--bh:1209.44882%;}
-.art-back{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:237;--ah:127;--bx:49.55527%;--by:58.97800%;--bw:432.06751%;--bh:1209.44882%;}
-.art-fullscreen{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:391;--ah:129;--bx:49.92101%;--by:71.35750%;--bw:261.89258%;--bh:1190.69767%;}
-.art-title{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:564;--ah:119;--bx:50.00000%;--by:83.48624%;--bw:181.56028%;--bh:1290.75630%;}
-.art-retry{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview.png");--aw:467;--ah:128;--bx:50.62837%;--by:95.52557%;--bw:219.27195%;--bh:1200.00000%;}
-.art-high{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:161;--ah:164;--bx:49.94206%;--by:4.22741%;--bw:636.02484%;--bh:936.58537%;}
-.art-medium{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:149;--ah:157;--bx:50.28571%;--by:22.91516%;--bw:687.24832%;--bh:978.34395%;}
-.art-low{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:169;--ah:158;--bx:49.94152%;--by:40.92888%;--bw:605.91716%;--bh:972.15190%;}
-.art-on{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:282;--ah:140;--bx:50.26954%;--by:59.02579%;--bw:363.12057%;--bh:1097.14286%;}
-.art-off{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:277;--ah:139;--bx:49.93307%;--by:76.23479%;--bw:369.67509%;--bh:1105.03597%;}
-.art-selected{--art:url("assets/ui/approved/backrooms-menu-options-preview.png");--aw:464;--ah:154;--bx:50.35714%;--by:94.21129%;--bw:220.68966%;--bh:997.40260%;}
-.art-volume{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:237;--ah:120;--bx:49.93647%;--by:4.37853%;--bw:432.06751%;--bh:1280.00000%;}
-.art-quality{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:237;--ah:118;--bx:50.06353%;--by:17.98307%;--bw:432.06751%;--bh:1301.69492%;}
-.art-controls{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:467;--ah:114;--bx:49.91023%;--by:31.15331%;--bw:219.27195%;--bh:1347.36842%;}
-.art-move{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:239;--ah:113;--bx:50.06369%;--by:43.71047%;--bw:428.45188%;--bh:1359.29204%;}
-.art-look{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:466;--ah:115;--bx:50.00000%;--by:56.22801%;--bw:219.74249%;--bh:1335.65217%;}
-.art-run{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:227;--ah:121;--bx:50.06274%;--by:68.55124%;--bw:451.10132%;--bh:1269.42149%;}
-.art-items{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:650;--ah:119;--bx:50.26738%;--by:81.15737%;--bw:157.53846%;--bh:1290.75630%;}
-.art-success{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2.png");--aw:470;--ah:116;--bx:49.81949%;--by:94.29577%;--bw:217.87234%;--bh:1324.13793%;}
+.art-start{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:392;--ah:136;--bx:49.68354%;--by:5.78571%;--bw:261.22449%;--bh:1129.41176%;}
+.art-resume{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:275;--ah:133;--bx:50.06676%;--by:19.67213%;--bw:372.36364%;--bh:1154.88722%;}
+.art-settings{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:273;--ah:130;--bx:50.19973%;--by:33.35704%;--bw:375.09158%;--bh:1181.53846%;}
+.art-help{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:518;--ah:127;--bx:49.80237%;--by:46.41590%;--bw:197.68340%;--bh:1209.44882%;}
+.art-back{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:237;--ah:127;--bx:49.55527%;--by:58.97800%;--bw:432.06751%;--bh:1209.44882%;}
+.art-fullscreen{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:391;--ah:129;--bx:49.92101%;--by:71.35750%;--bw:261.89258%;--bh:1190.69767%;}
+.art-title{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:564;--ah:119;--bx:50.00000%;--by:83.48624%;--bw:181.56028%;--bh:1290.75630%;}
+.art-retry{--art:url("assets/ui/approved/backrooms-menu-eight-labels-preview-lite.webp");--aw:467;--ah:128;--bx:50.62837%;--by:95.52557%;--bw:219.27195%;--bh:1200.00000%;}
+.art-high{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:161;--ah:164;--bx:49.94206%;--by:4.22741%;--bw:636.02484%;--bh:936.58537%;}
+.art-medium{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:149;--ah:157;--bx:50.28571%;--by:22.91516%;--bw:687.24832%;--bh:978.34395%;}
+.art-low{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:169;--ah:158;--bx:49.94152%;--by:40.92888%;--bw:605.91716%;--bh:972.15190%;}
+.art-on{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:282;--ah:140;--bx:50.26954%;--by:59.02579%;--bw:363.12057%;--bh:1097.14286%;}
+.art-off{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:277;--ah:139;--bx:49.93307%;--by:76.23479%;--bw:369.67509%;--bh:1105.03597%;}
+.art-selected{--art:url("assets/ui/approved/backrooms-menu-options-preview-lite.webp");--aw:464;--ah:154;--bx:50.35714%;--by:94.21129%;--bw:220.68966%;--bh:997.40260%;}
+.art-volume{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:237;--ah:120;--bx:49.93647%;--by:4.37853%;--bw:432.06751%;--bh:1280.00000%;}
+.art-quality{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:237;--ah:118;--bx:50.06353%;--by:17.98307%;--bw:432.06751%;--bh:1301.69492%;}
+.art-controls{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:467;--ah:114;--bx:49.91023%;--by:31.15331%;--bw:219.27195%;--bh:1347.36842%;}
+.art-move{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:239;--ah:113;--bx:50.06369%;--by:43.71047%;--bw:428.45188%;--bh:1359.29204%;}
+.art-look{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:466;--ah:115;--bx:50.00000%;--by:56.22801%;--bw:219.74249%;--bh:1335.65217%;}
+.art-run{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:227;--ah:121;--bx:50.06274%;--by:68.55124%;--bw:451.10132%;--bh:1269.42149%;}
+.art-items{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:650;--ah:119;--bx:50.26738%;--by:81.15737%;--bw:157.53846%;--bh:1290.75630%;}
+.art-success{--art:url("assets/ui/approved/backrooms-settings-controls-clear-labels-alpha-v2-lite.webp");--aw:470;--ah:116;--bx:49.81949%;--by:94.29577%;--bw:217.87234%;--bh:1324.13793%;}
 
 .art-label { display:inline-block; height:var(--label-height,40px); width:calc(var(--label-height,40px) * var(--aw) / var(--ah)); max-width:100%; background-image:var(--art); background-position:var(--bx) var(--by); background-size:var(--bw) var(--bh); background-repeat:no-repeat; vertical-align:middle; }
 #menu .art-button,#pause .art-button,#result .art-button,#credits .art-button { font-size:0; line-height:1; }

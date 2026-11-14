@@ -3,6 +3,7 @@
 // that the source assets provide walking or transformation animation.
 import {M} from './engine.js';
 import {readGLB} from './renderer-resources.js';
+import {loadModelBuffer} from './model-source.js';
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const components={5120:['getInt8',1,127],5121:['getUint8',1,255],5122:['getInt16',2,32767],5123:['getUint16',2,65535],5125:['getUint32',4,4294967295],5126:['getFloat32',4,1]};
@@ -109,8 +110,7 @@ export function proceduralActorPose(type,time,{speed=0,mode='idle',collapse=0,ga
 export async function createSkinnedActor(renderer,model,{url,type}={}){
   if(!DEFINITIONS[type]||typeof url!=='string')throw Error('Actor type and URL required');
   if(!renderer?.gl)return {enabled:false,update(){return {rigged:false}},reset(){},dispose(){}};
-  const response=await fetch(url);if(!response.ok)throw Error(`Actor model HTTP ${response.status}`);
-  const rig=buildSkinnedRig(await response.arrayBuffer());if(model.meshes?.length!==1)throw Error('Actor mesh does not match rig');
+  const rig=buildSkinnedRig(await loadModelBuffer(url));if(model.meshes?.length!==1)throw Error('Actor mesh does not match rig');
   for(const name of Object.values(DEFINITIONS[type])){const index=rig.names.get(name);if(index===undefined||index<0||!rig.skin.joints.includes(index))throw Error(`Actor skeleton is missing ${name}`)}
   const g=renderer.gl,mesh=model.meshes[0],old=[],buffers=[];let disposed=false,time=0,accumulator=0,gaitPhase=0;
   g.bindVertexArray(mesh.vao);

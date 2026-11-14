@@ -1,4 +1,5 @@
 import {GLResources, readGLB, baseColorForMaterial} from "./renderer-resources.js";
+import {loadModelBuffer} from './model-source.js';
 // Small local WebGL2 renderer. No CDN, tracking, or runtime dependencies.
 export const V={add:(a,b)=>a.map((v,i)=>v+b[i]),sub:(a,b)=>a.map((v,i)=>v-b[i]),len:a=>Math.hypot(...a),norm:a=>{let l=Math.hypot(...a)||1;return a.map(v=>v/l)},cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot:(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0)};
 export const M={
@@ -229,10 +230,7 @@ export class Renderer {
     this._pendingLoads.add(resources);
     const g = this.gl;
     try {
-      const response = await fetch(url);
-      this._assertActive();
-      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
-      const data = await response.arrayBuffer();
+      const data = await loadModelBuffer(url);
       this._assertActive();
       const {json: j, bytes} = readGLB(data), textures = [];
       for (const image of j.images || []) {

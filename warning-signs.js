@@ -2,6 +2,7 @@
 // GLB and renderer-owned buffers/materials stay unchanged and are shared.
 import {M} from './engine.js';
 import {readGLB} from './renderer-resources.js';
+import {loadModelBuffer} from './model-source.js';
 
 const DEFINITIONS=Object.freeze({
   stop:12, stop_alt:14, yield:8, do_not_enter:3, wrong_way:11,
@@ -45,6 +46,5 @@ export function createWarningSignCatalog(model,buffer){
   };
 }
 export async function loadWarningSignCatalog(model,{url='assets/models/warning-signs-set.glb'}={}){
-  const response=await fetch(url);if(!response.ok)throw Error(`Warning-sign model HTTP ${response.status}`);
-  return createWarningSignCatalog(model,await response.arrayBuffer());
+  return createWarningSignCatalog(model,await loadModelBuffer(url));
 }

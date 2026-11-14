@@ -1,4 +1,5 @@
 import {Renderer,M,V} from './engine.js';
+import {beginModelLoadBatch,endModelLoadBatch} from './model-source.js';
 import {formatTime} from './core.js';
 import {loadWorld} from './world.js';
 import {createBacteriaAnimator} from './enemy-animation.js';
@@ -46,6 +47,7 @@ import {createWatchers,createStraySigns} from './liminal-props.js';
 import {createSetDressing,DRESSING_MODELS} from './set-dressing.js';
 const $=id=>document.getElementById(id),canvas=$('view'),keys=new Set();
 let hudClock=0, frameAverage=1/60, renderScale=1, scaleClock=0;
+let titleFrameDirty=true,titlePixelRatio=window.devicePixelRatio;
 let world,stage,stageIndex=0,stageObjects=[],animator,passages=[],exitDoor=[],captureTime=0,atmosphere=null;
 let objective,water,enemyDirector,encounter,input,exploration,waterModel,staminaDelay=0,operationTime=0,explorationClock=0,markerElements=[],maintenanceModels=[],maintenanceFixture=null;
 let renderingUnavailable=false,sourceScene=null,returnHintReached=false;
@@ -81,7 +83,7 @@ const camera={eye:[0,1.6,1],yaw:0,pitch:0,fov:74},settings={normal:{walk:3.4,spr
 let sound=new HorrorAudio({volume:.65}),inventory=createInventory(),inventoryUI=null,itemSlots=null,glimpse=createGlimpseDirector({delay:18}),introSequence=null,awakening=null;
 const LOCKER_TRANSITION_SECONDS=2.05, LOCKER_ANIMATION_SPEED=2;
 function notice(text,duration=5){$('message').textContent=text;noticeUntil=performance.now()+duration*1000}
-function setState(next){let previous=state;state=next;if(next!=='playing')warningRoom?.update(camera,false);if(document.body.dataset)document.body.dataset.gameState=next;for(let id of ['menu','pause','result','hud'])$(id).hidden=true;$('map-wrap').hidden=true;input?.clear();keys.clear();if(next==='menu')$('menu').hidden=false;if(next==='paused')$('pause').hidden=false;if(next==='playing')$('hud').hidden=false;if(next==='lost'||next==='won')$('result').hidden=false;if(next!=='playing'){input?.releasePointerLock();$('danger').style.opacity=0}if(next!=='caught'){$('danger').style.backgroundColor='transparent';$('danger').style.boxShadow=''}if(next!=='inventory')inventoryUI?.close();if(next!=='caught')sound.setState(next==='inventory'?'paused':next,{silent:previous==='caught'&&next==='lost'})}
+function setState(next){let previous=state;state=next;titleFrameDirty=true;if(next!=='playing')warningRoom?.update(camera,false);if(document.body.dataset)document.body.dataset.gameState=next;for(let id of ['menu','pause','result','hud'])$(id).hidden=true;$('map-wrap').hidden=true;input?.clear();keys.clear();if(next==='menu')$('menu').hidden=false;if(next==='paused')$('pause').hidden=false;if(next==='playing')$('hud').hidden=false;if(next==='lost'||next==='won')$('result').hidden=false;if(next!=='playing'){input?.releasePointerLock();$('danger').style.opacity=0}if(next!=='caught'){$('danger').style.backgroundColor='transparent';$('danger').style.boxShadow=''}if(next!=='inventory')inventoryUI?.close();if(next!=='caught')sound.setState(next==='inventory'?'paused':next,{silent:previous==='caught'&&next==='lost'})}
 function requestMouse(){input?.requestPointerLock()}
 function activateStage(index){
  stageIndex=index;stage=world.stages[index];nav=world.nav;fall=null;
@@ -684,7 +686,15 @@ function tick(now){
   }
   // The opaque intro covers the canvas. Leave the frame clock running, but
   // free the GPU for video playback until the intro hands off to awakening/play.
-  if(renderer&&!renderingUnavailable&&state!=='intro'){if(state==='menu'||state==='loading'){const p=world?.nav?world.nav.point(world.nav.start):[.3,1.3];camera.eye=[p[0],(world?.nav.floorAt(...p)??0)+1.62,p[1]];camera.yaw=(world?.stages[0]?.spawnYaw??-.65)+Math.sin(now*.00006)*.15;camera.pitch=-.06;if(stageObjects.length){overlayItems=[];drawFrame(stageObjects.map(g=>g.model),{ambient:.75,fogNear:8,fogFar:22},{time:now/1000,vignette:.7})}}else{
+  if(renderer&&!renderingUnavailable&&state!=='intro'){if(state==='menu'||state==='loading'){
+   // Keep the actual room as a still backdrop, leaving the GPU to the title
+   // player. Refresh when its size, pixel density or visible state changes.
+   if(titlePixelRatio!==window.devicePixelRatio){titlePixelRatio=window.devicePixelRatio;titleFrameDirty=true}
+   if(titleFrameDirty&&stageObjects.length){
+    const p=world?.nav?world.nav.point(world.nav.start):[.3,1.3];camera.eye=[p[0],(world?.nav.floorAt(...p)??0)+1.62,p[1]];camera.yaw=world?.stages[0]?.spawnYaw??-.65;camera.pitch=-.06;
+    overlayItems=[];drawFrame(stageObjects.map(g=>g.model),{ambient:.75,fogNear:8,fogFar:22},{time:0,vignette:.7});titleFrameDirty=false;
+   }
+  }else{
    atmosphere=atmosphereAt(world,...player);
    wallWriting?.update(camera.eye);warningWallRepair?.update(camera.eye);warningRoom?.update(camera,state==='playing');bacteria.foreground=state==='caught'&&skinCaptureActor==='bacteria';if(skinModel)skinModel.foreground=state==='caught'&&skinCaptureActor==='skinstealer';const scene=state==='falling'?stageObjects.filter(g=>g.model.instanceId==='baked').map(g=>g.model):[...stageObjects.map(g=>g.model),...doorFrames,...(breakerPanels?.models??[]),...(dressing?.models??[]),...straySigns,...(watchers?.models??[]),warningWallRepair?.model,...(wallWriting?.models??[]),...(warningRoom?.models??[]),...passages,...exitDoor,...maintenanceModels,...(water?.models??[]),flashlightModel,...lockerInstances.map(x=>x.visual.model),...(bustPyramid?.models??[]),bacteriaShadow,bacteria,hazmatModel,skinModel].filter(Boolean);const mood=presentAtmosphere(dt,now);sceneLight=mood.light;presentGuidance(now);presentLockerView();
    const fade=state==='ending'?{fade:Math.min(1,endingTime/2.4),fadeColor:[.78,.88,.88]}:state==='won'?{fade:.55,fadeColor:[.78,.88,.88]}:null;
@@ -706,6 +716,11 @@ canvas.addEventListener('webglcontextlost',e=>{
  $('resume').disabled=true;$('retry-pause').disabled=true;$('start').disabled=true;$('retry').disabled=true;
  $('error').textContent='描画を再開するには、ページを再読み込みしてください。';
 });
+const invalidateTitleFrame=()=>{titleFrameDirty=true};
+window.addEventListener('resize',invalidateTitleFrame);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)invalidateTitleFrame()});
+const titleResizeObserver=typeof ResizeObserver==='function'?new ResizeObserver(invalidateTitleFrame):null;
+titleResizeObserver?.observe(canvas);
 
 installModalAccessibility({document,window});
 deathSequence=createDeathSequence({document,onFinish:completeDeath,onChant:event=>{if(event==='start'||event==='resume')sound.cue('chant');else if(event==='pause')sound.stopCue('chant')}});document.body.append(deathSequence.root);
@@ -714,9 +729,22 @@ fullscreenControl=createFullscreenControl({document,buttons:[$('fullscreen-menu'
  if(!active&&infectionSequence?.phase==='running'){infectionSequence.cancel();escapeWarningRoom({wasFullscreen:true})}
 },onError:()=>{const message='全画面にできませんでした。通常表示で続けられます。';if($('fullscreen-status'))$('fullscreen-status').textContent=message;if(state==='paused'&&$('pause-description'))$('pause-description').textContent=message;else if(state==='playing')notice(message,4)}});
 
-async function load(){try{renderer=new Renderer(canvas);try{if(new URLSearchParams(location.search).has('direct'))throw Error('direct rendering requested');pipeline=createRenderPipeline(renderer);document.body.classList.add('pipeline')}catch(error){console.warn('Render pipeline unavailable; drawing directly.',error);pipeline=null}requestAnimationFrame(tick);world=await loadWorld();
+async function load(){
+ // Each of these has a renderer reader and a rig/geometry reader during boot.
+ beginModelLoadBatch(['bacteria','hazmat','skinstealer','locker','warning-signs-set','level0'].map(name=>`assets/models/${name}.glb`));
+ try{renderer=new Renderer(canvas);try{if(new URLSearchParams(location.search).has('direct'))throw Error('direct rendering requested');pipeline=createRenderPipeline(renderer);document.body.classList.add('pipeline')}catch(error){console.warn('Render pipeline unavailable; drawing directly.',error);pipeline=null}requestAnimationFrame(tick);world=await loadWorld();
  const sources=[['assets/models/bacteria.glb',o=>bacteria=o],[ALMOND_WATER_MODEL_URL,o=>waterModel=o],['assets/models/hazmat.glb',o=>hazmatModel=o],['assets/models/skinstealer.glb',o=>skinModel=o],['assets/models/locker.glb',o=>lockerModel=o],['assets/models/flashlight.glb',o=>flashlightModel=o],['assets/models/sculpture-bust-roza.glb',o=>bustModel=o],...Object.entries(DRESSING_MODELS).map(([type,url])=>[url,o=>dressingModels[type]=o])];
- for(const [url,assign] of sources){$('load-label').textContent=`Loading actor ${loadCount+1} / ${sources.length}`;assign(await renderer.load(url));loadCount++;$('load-fill').style.width=loadCount/(sources.length+4)*100+'%'}
+ // Overlap a few independent downloads without decoding every large GLB at once.
+ let sourceIndex=0,sourceError=null;
+ $('load-label').textContent=`Loading actor 0 / ${sources.length}`;
+ await Promise.all(Array.from({length:Math.min(3,sources.length)},async()=>{
+  while(!sourceError&&sourceIndex<sources.length){
+   const [url,assign]=sources[sourceIndex++];
+   try{assign(await renderer.load(url));loadCount++;if(!sourceError){$('load-label').textContent=`Loading actor ${loadCount} / ${sources.length}`;$('load-fill').style.width=loadCount/(sources.length+4)*100+'%'}}
+   catch(error){sourceError=error}
+  }
+ }));
+ if(sourceError)throw sourceError;
  sourceScene=await createSourceWorldVisual(renderer,world.layout,(loaded,total)=>{$('load-label').textContent=`Loading original room ${loaded} / ${total}`;$('load-fill').style.width=(sources.length+loaded)/(sources.length+total)*100+'%'});
  stageObjects=sourceScene.models.map(model=>({model,items:[],portal:[],landmarks:[]}));
  // The field's single grass texture is stretched over ~96 m; add its own fine detail.
@@ -776,5 +804,6 @@ async function load(){try{renderer=new Renderer(canvas);try{if(new URLSearchPara
   let wrap=document.createElement('div');wrap.style='position:fixed;right:15px;bottom:65px;z-index:20;display:flex;gap:5px;background:#101010;padding:8px';
   for(let [label,fn] of [['QA: クリア経路',()=>{$('difficulty').value='explore';start();qaAutomatic=true;qaRoute=[];notice('QA: 扉の調査、回路復旧、脱出まで歩いて検証します。',6)}],['QA: 敵の追跡',()=>{$('difficulty').value='normal';start();enemy.pos=nav.point(nav.path(nav.start,nav.exit)[15]);enemy.yaw=Math.atan2(player[0]-enemy.pos[0],player[1]-enemy.pos[1]);enemyDirector.activate();bacteria.visible=true;notice('QA: 近くの敵が視線・物音でプレイヤーを探します。',6)}]]){let b=document.createElement('button');b.textContent=label;b.style='width:auto;font-size:10px';b.onclick=fn;wrap.append(b)}document.body.append(wrap);
  }
- }catch(e){console.error(e);$('load-label').textContent='読み込みに失敗しました';$('error').textContent=e.message+'\nSTART-GAME.bat から起動し、ブラウザーを再読み込みしてください。';$('start').disabled=true}}
+ }catch(e){console.error(e);$('load-label').textContent='読み込みに失敗しました';$('error').textContent=e.message+'\nSTART-GAME.bat から起動し、ブラウザーを再読み込みしてください。';$('start').disabled=true}
+ finally{endModelLoadBatch()}}
 load();

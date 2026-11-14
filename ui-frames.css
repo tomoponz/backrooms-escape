@@ -1,14 +1,14 @@
-/* Owner-approved five frame assets, original PNG bytes.
+/* Owner-approved frame assets, with lightweight copies for shared controls.
    Images provide surfaces only: native controls and live content remain. */
 #menu .settings-guide[open],#menu .briefing[open],#credits .credits-panel {
- background: url("assets/ui/frames/panel.png") center / 111.5% 123% no-repeat;
+ background: url("assets/ui/frames/panel-lite.webp") center / 111.5% 123% no-repeat;
  border:0; box-shadow:none; padding:28px 34px;
 }
 #menu .settings-guide[open]>summary,#menu .briefing[open]>summary { margin-bottom:12px; }
-#pause .panel { background:url("assets/ui/frames/panel.png") center / 111.5% 123% no-repeat; padding:32px 40px; }
+#pause .panel { background:url("assets/ui/frames/panel-lite.webp") center / 111.5% 123% no-repeat; padding:32px 40px; }
 #menu button.art-button,#pause button.art-button,#result button.art-button,
 #credits button.art-button,.inventory-overlay button,.intro-sequence button {
- background-image:url("assets/ui/frames/buttons.png");
+ background-image:url("assets/ui/frames/buttons-lite.webp");
  background-size:104.3% 369.4%; background-position:50% 7.4%; background-repeat:no-repeat;
  background-color:transparent!important; border:0!important; box-shadow:none;
  padding:12px 26px; min-width:140px; min-height:52px;
@@ -42,21 +42,21 @@
  -webkit-appearance:none;appearance:none;background:transparent;min-height:40px;height:40px;cursor:pointer;
 }
 #menu input[type="range"]::-webkit-slider-runnable-track,.intro-sequence input[type="range"]::-webkit-slider-runnable-track {
- height:14px;background:url("assets/ui/frames/slider.png") 50% 20.8% / 102.9% 635% no-repeat;border:0;border-radius:0;
+ height:14px;background:url("assets/ui/frames/slider-lite.webp") 50% 20.8% / 102.9% 635% no-repeat;border:0;border-radius:0;
 }
 #menu input[type="range"]::-webkit-slider-thumb,.intro-sequence input[type="range"]::-webkit-slider-thumb {
  -webkit-appearance:none;appearance:none;width:24px;height:36px;margin-top:-11px;border:0;border-radius:0;
- background:url("assets/ui/frames/slider.png") 27.8% 85.6% / 1054% 228% no-repeat;
+ background:url("assets/ui/frames/slider-lite.webp") 27.8% 85.6% / 1054% 228% no-repeat;
 }
 #menu input[type="range"]:focus-visible,.intro-sequence input[type="range"]:focus-visible { outline:2px solid #e8dbad;outline-offset:3px; }
 #menu input[type="range"]:focus-visible::-webkit-slider-thumb,.intro-sequence input[type="range"]:focus-visible::-webkit-slider-thumb {
  background-position:72.3% 85.6%;
 }
 #menu input[type="range"]::-moz-range-track,.intro-sequence input[type="range"]::-moz-range-track {
- height:14px;background:url("assets/ui/frames/slider.png") 50% 20.8% / 102.9% 635% no-repeat;border:0;
+ height:14px;background:url("assets/ui/frames/slider-lite.webp") 50% 20.8% / 102.9% 635% no-repeat;border:0;
 }
 #menu input[type="range"]::-moz-range-thumb,.intro-sequence input[type="range"]::-moz-range-thumb {
- width:24px;height:36px;border:0;background:url("assets/ui/frames/slider.png") 27.8% 85.6% / 1054% 228% no-repeat;
+ width:24px;height:36px;border:0;background:url("assets/ui/frames/slider-lite.webp") 27.8% 85.6% / 1054% 228% no-repeat;
 }
 @media(max-width:700px),(max-height:600px) {
  #menu .settings-guide[open],#menu .briefing[open],#pause .panel,#credits .credits-panel { padding:24px; }
@@ -68,7 +68,7 @@
 /* Explicit component selectors override their legacy button shorthand. */
 .inventory-overlay button.inventory-close,.inventory-overlay button.inventory-use,
 .intro-sequence button.intro-sequence-pause,.intro-sequence button.intro-sequence-skip,.intro-sequence button.intro-sequence-begin {
- color:#f0ead5; text-shadow:0 1px 3px #000; background-image:url("assets/ui/frames/buttons.png");
+ color:#f0ead5; text-shadow:0 1px 3px #000; background-image:url("assets/ui/frames/buttons-lite.webp");
  background-size:104.3% 369.4%;background-position:50% 7.4%;background-repeat:no-repeat;
 }
 .inventory-overlay button.inventory-close:hover,.inventory-overlay button.inventory-use:hover,

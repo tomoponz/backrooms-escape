@@ -1,6 +1,7 @@
 // Procedural skinning for the existing Roman Trace Bacteria mesh.
 // No additional model, dependency, or network asset is required.
 import { M } from './engine.js';
+import {loadModelBuffer} from './model-source.js';
 
 const TAU = Math.PI * 2;
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
@@ -239,9 +240,7 @@ export async function createBacteriaAnimator(renderer, model, options = {}) {
   if (!renderer?.gl || options.disabled) return noOpAnimator();
   let input = options.glb;
   if (!input) {
-    const response = await fetch(options.url || 'assets/models/bacteria.glb');
-    if (!response.ok) throw new Error(`Bacteria animation: HTTP ${response.status}`);
-    input = await response.arrayBuffer();
+    input = await loadModelBuffer(options.url || 'assets/models/bacteria.glb');
   }
   const rig = buildBacteriaRig(input);
   if (rig.parts.length !== model.meshes.length) throw new Error('Bacteria animation mesh order does not match the renderer.');

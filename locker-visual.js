@@ -2,6 +2,7 @@
 // unchanged; rigidly weighted meshes use their authored joints and animation.
 import {M} from './engine.js';
 import {readGLB} from './renderer-resources.js';
+import {loadModelBuffer} from './model-source.js';
 import {cutLockerSlit} from './locker-slit.js';
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -55,8 +56,7 @@ export function readLockerRig(buffer){
 
 export async function createLockerVisual(renderer,model,{url='assets/models/locker.glb'}={}){
   if(!renderer?.gl)throw Error('Locker requires WebGL');
-  const response=await fetch(url);if(!response.ok)throw Error(`Locker model HTTP ${response.status}`);
-  const buffer=await response.arrayBuffer(),rig=readLockerRig(buffer);
+  const buffer=await loadModelBuffer(url),rig=readLockerRig(buffer);
   if(model?.meshes?.length!==rig.parts.length)throw Error('Locker renderer mesh mismatch');
   const originals=model.meshes.map(m=>m.matrix),slit=cutLockerSlit(renderer,model,buffer);
   let disposed=false;const instances=new Set();

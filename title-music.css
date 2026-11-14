@@ -11,7 +11,7 @@
 }
 .title-music-cabinet::before, .title-music-cabinet::after { content: ''; position: absolute; pointer-events: none; }
 .title-music-cabinet::before { left: 10%; top: 9%; width: 68%; height: 79%; background: #000; }
-.title-music-cabinet::after { inset: 0; background: url('assets/ui/title-crt-frame.png') center / 100% 100% no-repeat; }
+.title-music-cabinet::after { inset: 0; background: url('assets/ui/title-crt-frame-lite.webp') center / 100% 100% no-repeat; }
 /* This rectangle stays inside the curved transparent window at all four corners.
    The cabinet grows taller on narrow screens to keep the player at least 200px high. */
 .title-music-screen {
