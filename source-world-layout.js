@@ -143,7 +143,9 @@ export const SOURCE_WORLD_LAYOUT = {
     {id:'chair-far-west',type:'chair',position:[-87.1,-9.5],yaw:-Math.PI/2,region:'original-far-west'},
     {id:'chair-south-southwest-a',type:'chair',position:[-52.0,61.9],yaw:0,region:'original-south-southwest'},
     {id:'chair-south-southwest-b',type:'chair',position:[-50.9,61.9],yaw:0,region:'original-south-southwest'},
-    {id:'box-crowbar',type:'box',position:[-69.6,59.4],yaw:.4,contains:'crowbar',region:'original-far-south-southwest'},
+    // Beside the far-west partition: searching for the tool crosses the
+    // existing hazmat patrol, while the box stays clear of the passage.
+    {id:'box-crowbar',type:'box',position:[-80.4,-7.4],yaw:.4,contains:'crowbar',region:'original-far-west'},
     {id:'box-middle',type:'box',position:[-15.0,-9.8],yaw:-.3,contains:'water',region:'original-middle'},
     {id:'box-east',type:'box',position:[10.6,1.6],yaw:1.1,contains:null,region:'original-east'},
     {id:'box-southeast',type:'box',position:[-9.6,25.6],yaw:.2,contains:'water',region:'original-southeast'},

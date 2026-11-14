@@ -3,7 +3,7 @@ import {M} from './engine.js';
 // The inventory owns the flashlight. This module owns only the switch state;
 // model placement and registration are supplied by the game.
 export const FLASHLIGHT_ID='flashlight';
-export const FLASHLIGHT_PICKUP_RANGE=.9;
+export const FLASHLIGHT_PICKUP_RANGE=2;
 export const FLASHLIGHT_FLOOR_SCALE=2;
 
 // Uniformly enlarge the approved model, keeping its centre and lowest point

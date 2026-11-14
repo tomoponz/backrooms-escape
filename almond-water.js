@@ -5,7 +5,7 @@ export const ALMOND_WATER_MODEL_URL = 'assets/models/almond-water.glb';
 export const ALMOND_WATER_RESTORE = 60;
 export const ALMOND_WATER_MAX_STACK = 3;
 export const ALMOND_WATER_HEIGHT = .36;
-export const ALMOND_WATER_PICKUP_RANGE = 1.6;
+export const ALMOND_WATER_PICKUP_RANGE = 2;
 
 // The game remains responsible for stamina and sprint readiness. This effect
 // only requests ordinary stamina restoration; it grants no other player state.
