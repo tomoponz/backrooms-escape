@@ -1,3 +1,9 @@
+## Chant volume increase — 2026-11-14
+
+Only the existing chant receives a new 1.3 recording-gain multiplier. Its cue setting remains 0.9; the combined gain before the user's mixer and shared compressor changes from 0.9 to 1.17 (1.3x amplitude, about +2.28 dB). Saved individual levels, master volume, other cue settings, compressor parameters and playback timing are unchanged. The original `2okyou.wav` remains byte-identical (SHA-256 `850511caffb13ea72e29e1e61279eb00e9e93c101494d0991921f6dabd8b56ff`).
+
+Native Chrome OfflineAudioContext measurements used the actual game audio graph and full recording at 44.1 and 48 kHz. At master 65% and chant 100%, full-recording RMS increased from about -21.96 to -19.73 dBFS (+2.24 dB). At master 100% and chant 800%, the highest measured sample peak was 0.97674 (-0.204 dBFS), with no clipped or non-finite samples. These are measured digital outputs, not a physical speaker listening test. Reload the game to apply; existing sound-volume controls still work.
+
 ## Enemy footstep distance adjustment — 2026-11-13
 
 Bacteria and the moving Hazmat/Skinstealer use the same existing enemy-step recordings with quadratic distance attenuation: full near-field level at 0–2 m, approximately 67% at 6 m, 30% at 12 m, 7.4% at 18 m, silence at 24 m. Percentages are pre-compressor amplitude relative to the close level, not perceived loudness. Patrol remains at 72% of chase level. The previous constant distant-volume floor is removed. Stereo pan, individual saved level, master volume, and all other cues (including the approved 3x chant) are unchanged. Phantom atmospheric footsteps intentionally retain their independent low-volume cues. 19 audio contract tests passed; no speaker listening or new native output measurement performed. Reload the game to apply.

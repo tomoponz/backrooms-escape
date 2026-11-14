@@ -16,7 +16,7 @@ export const AUDIO_SEGMENTS = Object.freeze({
 const LEVEL_LOOPS = Object.freeze({heartbeat: {gain: .5, bus: 'resultBus'}, chase_bgm: {gain: .4, bus: 'playBus'}});
 // Per-recording adjustments leave the selected fluorescent loop and the
 // player's walking/running recordings on their original signal paths and gains.
-const RECORDING_GAIN = Object.freeze({enemy_step:2.5, alert:2, door:1.06, locked:1.25, capture:1.12});
+const RECORDING_GAIN = Object.freeze({enemy_step:2.5, alert:2, door:1.06, locked:1.25, capture:1.12, chant:1.3});
 const CUE_VOLUME = Object.freeze({capture:.8, skin_voice:.6, chant:.9, warning_tone:.3, bust_fall:.8, pry:.7, locker_open:.6, locker_close:.6, transform:.75});
 const base = new URL('./assets/audio/', import.meta.url);
 
