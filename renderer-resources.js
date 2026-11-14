@@ -11,6 +11,18 @@ export function baseColorForMaterial(asset, material = {}) {
   };
 }
 
+// Only base colour and emission are sampled by this renderer. Other authored
+// maps stay in the GLB, without decoding or allocating unused GPU textures.
+export function materialImageSources(json) {
+  const sources = new Set();
+  for (const material of json.materials || []) {
+    for (const slot of [baseColorForMaterial(json.asset, material).texture, material.emissiveTexture]) {
+      if (slot) sources.add(json.textures[slot.index].source);
+    }
+  }
+  return sources;
+}
+
 // Explicit ownership for renderer-created WebGL handles. Scopes let a failed
 // model load release its partial work without disturbing already-loaded models.
 export class GLResources {

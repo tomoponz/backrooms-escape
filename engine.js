@@ -1,4 +1,4 @@
-import {GLResources, readGLB, baseColorForMaterial} from "./renderer-resources.js";
+import {GLResources, readGLB, baseColorForMaterial, materialImageSources} from "./renderer-resources.js";
 import {loadModelBuffer} from './model-source.js';
 // Small local WebGL2 renderer. No CDN, tracking, or runtime dependencies.
 export const V={add:(a,b)=>a.map((v,i)=>v+b[i]),sub:(a,b)=>a.map((v,i)=>v-b[i]),len:a=>Math.hypot(...a),norm:a=>{let l=Math.hypot(...a)||1;return a.map(v=>v/l)},cross:(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]],dot:(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0)};
@@ -233,7 +233,9 @@ export class Renderer {
       const data = await loadModelBuffer(url);
       this._assertActive();
       const {json: j, bytes} = readGLB(data), textures = [];
-      for (const image of j.images || []) {
+      const imageSources = materialImageSources(j);
+      for (const [imageIndex, image] of (j.images || []).entries()) {
+        if (!imageSources.has(imageIndex)) continue;
         if (image.uri) throw new Error('External image references are not supported');
         const bitmap = await createImageBitmap(new Blob([bytes(image.bufferView)], {type: image.mimeType}), {premultiplyAlpha: 'none', colorSpaceConversion: 'none'});
         try {
@@ -246,7 +248,7 @@ export class Renderer {
           g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MIN_FILTER, g.LINEAR_MIPMAP_LINEAR);
           g.texParameteri(g.TEXTURE_2D, g.TEXTURE_MAG_FILTER, g.LINEAR);
           if (this._anisotropy?.level > 1) g.texParameterf?.(g.TEXTURE_2D, this._anisotropy.parameter, this._anisotropy.level);
-          textures.push(texture);
+          textures[imageIndex] = texture;
         } finally {
           bitmap.close();
         }

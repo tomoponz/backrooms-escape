@@ -13,12 +13,13 @@ async function withFetch(fetcher,check){
 }
 
 test('renderer and rig share one in-flight request and one body read',async()=>{
- const network=deferred(),body=bytes(1);let requests=0,bodyReads=0;
- await withFetch(()=>{requests++;return network.promise},async()=>{
+ const network=deferred(),body=bytes(1);let requests=0,bodyReads=0;const requested=[];
+ await withFetch(url=>{requests++;requested.push(url);return network.promise},async()=>{
   beginModelLoadBatch([model]);
   const renderer=loadModelBuffer(model),rig=loadModelBuffer(model);
   assert.equal(renderer,rig);
   assert.equal(requests,1);
+  assert.deepEqual(requested,['assets/models/optimized/hazmat.glb']);
   network.resolve({ok:true,arrayBuffer:async()=>{bodyReads++;return body}});
   assert.deepEqual(await Promise.all([renderer,rig]),[body,body]);
   assert.equal(bodyReads,1);
@@ -69,7 +70,7 @@ test('HTTP failure is not retained and a retry can still serve both readers',asy
  let requests=0,failedBodyRead=false;
  await withFetch(async()=>++requests===1?{ok:false,status:503,arrayBuffer(){failedBodyRead=true}}:response(bytes(2)),async()=>{
   beginModelLoadBatch([model]);
-  await assert.rejects(loadModelBuffer(model),/hazmat\.glb: HTTP 503/);
+  await assert.rejects(loadModelBuffer(model),{message:'assets/models/hazmat.glb: HTTP 503'});
   assert.equal(failedBodyRead,false);
   const renderer=loadModelBuffer(model),rig=loadModelBuffer(model);
   assert.equal(renderer,rig);
@@ -138,5 +139,18 @@ test('startup finally cleanup releases bytes when a later parser fails',async()=
   })(),/invalid rig/);
   await loadModelBuffer(model);
   assert.equal(requests,2);
+ });
+});
+
+test('only validated derived models change transport URLs',async()=>{
+ const names=['flashlight','hazmat','skinstealer','warning-signs-set','office-chair','electrical-box','sculpture-bust-roza','vent'];
+ const requested=[];
+ await withFetch(async url=>{requested.push(url);return response(bytes(requested.length))},async()=>{
+  for(const name of names)await loadModelBuffer(`assets/models/${name}.glb`);
+  assert.deepEqual(requested,names.map(name=>`assets/models/optimized/${name}.glb`));
+  requested.length=0;
+  const original=['assets/models/level0.glb','assets/models/locker.glb','assets/models/hazmat.glb?v=1',new URL('https://example.test/assets/models/hazmat.glb')];
+  for(const url of original)await loadModelBuffer(url);
+  assert.deepEqual(requested,original);
  });
 });

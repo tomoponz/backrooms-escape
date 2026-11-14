@@ -45,8 +45,14 @@ import {loadDoorFrames,createDoorFrames} from './door-frames.js';
 import {createBreakerPanels} from './breaker-panels.js';
 import {createWatchers,createStraySigns} from './liminal-props.js';
 import {createSetDressing,DRESSING_MODELS} from './set-dressing.js';
+import {createAdaptiveResolution} from './adaptive-resolution.js';
 const $=id=>document.getElementById(id),canvas=$('view'),keys=new Set();
-let hudClock=0, frameAverage=1/60, renderScale=1, scaleClock=0;
+// Device Memory is an optional, rounded browser hint. Keep the existing
+// standard default when it is unavailable; the player can always change it.
+const lowMemoryDevice=Number.isFinite(navigator.deviceMemory)&&navigator.deviceMemory<=4;
+if(lowMemoryDevice){$('quality').value='low';$('quality').dispatchEvent(new Event('change',{bubbles:true}))}
+let hudClock=0,renderScale=1;
+const adaptiveResolution=createAdaptiveResolution();
 let titleFrameDirty=true,titlePixelRatio=window.devicePixelRatio;
 let world,stage,stageIndex=0,stageObjects=[],animator,passages=[],exitDoor=[],captureTime=0,atmosphere=null;
 let objective,water,enemyDirector,encounter,input,exploration,waterModel,staminaDelay=0,operationTime=0,explorationClock=0,markerElements=[],maintenanceModels=[],maintenanceFixture=null;
@@ -71,12 +77,12 @@ const CROWBAR_ID='crowbar',dressingModels={};let dressing=null,jam={pried:false,
 // Three taps a second are enough; holding the key fills the gauge in under three seconds.
 const STRUGGLE=Object.freeze({escapes:2,window:5,press:.12,holdRate:.36,decay:.1,grace:4,stun:3.2,shove:2.3,aftermath:14});
 let struggle=null,escapesLeft=STRUGGLE.escapes,graceUntil=0,enemyStunUntil=0,skinStunUntil=0,aftermath=0,lockerCloseAt=null,bustLoud=false,bustCooldown=0;
-let guidance=null,horror=null,doorFrames=[],breakerPanels=null,guideInfo=null,operationTarget=null,endingTime=0,phantomSteps=[],scaleHold=0,sceneLight=1;
+let guidance=null,horror=null,doorFrames=[],breakerPanels=null,guideInfo=null,operationTarget=null,endingTime=0,phantomSteps=[],sceneLight=1;
 // Optional ?ratio=1 caps the canvas pixel ratio (diagnostics and slow displays).
 const outputRatioLimit=(()=>{const value=Number(new URLSearchParams(location.search).get('ratio'));return value>=.5&&value<=3?value:undefined})();
 let hazmatModel,skinModel,lockerModel,hazmatAnimator,skinAnimator,skinDirector,skinState=null,skinCaptureActor='bacteria',skinFootDistance=0;
 const explored=new Set(),discovered=new Set();let wayfinding={exit:[],maintenance:[],return:[],escape:[]};
-let renderer,nav,bacteria,state='loading',player=[0,0],yaw=-Math.PI/2,pitch=0,elapsed=0,stamina=100,sprintReady=true,collected=new Set(),flash=false,difficulty='normal',quality='high',motion=false,enemy,noticeUntil=0,last=performance.now(),footClock=0,loadCount=0,qaRoute=null,qaMessage='',qaAutomatic=true;
+let renderer,nav,bacteria,state='loading',player=[0,0],yaw=-Math.PI/2,pitch=0,elapsed=0,stamina=100,sprintReady=true,collected=new Set(),flash=false,difficulty='normal',quality=$('quality').value,motion=false,enemy,noticeUntil=0,last=performance.now(),footClock=0,loadCount=0,qaRoute=null,qaMessage='',qaAutomatic=true;
 // Walking pace suits rooms of this size; normal pursuit catches a walking
 // player, while a fresh sprint creates distance until stamina runs out.
 const camera={eye:[0,1.6,1],yaw:0,pitch:0,fov:74},settings={normal:{walk:3.4,sprint:5.9,chase:4.5,patrol:1.6},easy:{walk:3.4,sprint:5.9,chase:3.5,patrol:1.25},explore:{walk:3.4,sprint:5.9,chase:0,patrol:0}};
@@ -589,7 +595,7 @@ function drawFrame(scene,options,post={}){
 function tick(now){
  let raw=Math.max(0,(now-last)/1000),dt=Math.min(raw,1);last=now;
  try{
-  if(state==='playing'&&raw>0&&raw<.25){frameAverage=frameAverage*.94+raw*.06;scaleClock+=raw;scaleHold=Math.max(0,scaleHold-raw);if(scaleClock>1){if(frameAverage>1/48){renderScale=Math.max(.5,renderScale-(frameAverage>1/34?.15:.08));scaleHold=8}else if(frameAverage<1/57&&scaleHold===0)renderScale=Math.min(1,renderScale+.04);scaleClock=0}}
+  renderScale=adaptiveResolution.sample(raw,state==='playing'&&!document.hidden);
   if(state==='playing'){
    const initialEnemy=enemy,enemyStart=[...enemy.pos];
    let remaining=dt,moving=false,running=false,stepSound=false;
@@ -686,19 +692,22 @@ function tick(now){
   }
   // The opaque intro covers the canvas. Leave the frame clock running, but
   // free the GPU for video playback until the intro hands off to awakening/play.
+  if(titlePixelRatio!==window.devicePixelRatio){titlePixelRatio=window.devicePixelRatio;titleFrameDirty=true}
   if(renderer&&!renderingUnavailable&&state!=='intro'){if(state==='menu'||state==='loading'){
    // Keep the actual room as a still backdrop, leaving the GPU to the title
    // player. Refresh when its size, pixel density or visible state changes.
-   if(titlePixelRatio!==window.devicePixelRatio){titlePixelRatio=window.devicePixelRatio;titleFrameDirty=true}
    if(titleFrameDirty&&stageObjects.length){
     const p=world?.nav?world.nav.point(world.nav.start):[.3,1.3];camera.eye=[p[0],(world?.nav.floorAt(...p)??0)+1.62,p[1]];camera.yaw=world?.stages[0]?.spawnYaw??-.65;camera.pitch=-.06;
     overlayItems=[];drawFrame(stageObjects.map(g=>g.model),{ambient:.75,fogNear:8,fogFar:22},{time:0,vignette:.7});titleFrameDirty=false;
    }
-  }else{
+  }else if((state!=='paused'&&state!=='inventory')||titleFrameDirty){
+   // Paused simulation and inventory keep a still scene behind their DOM UI.
+   // State changes, resize, visibility and pixel density invalidate the frame.
    atmosphere=atmosphereAt(world,...player);
    wallWriting?.update(camera.eye);warningWallRepair?.update(camera.eye);warningRoom?.update(camera,state==='playing');bacteria.foreground=state==='caught'&&skinCaptureActor==='bacteria';if(skinModel)skinModel.foreground=state==='caught'&&skinCaptureActor==='skinstealer';const scene=state==='falling'?stageObjects.filter(g=>g.model.instanceId==='baked').map(g=>g.model):[...stageObjects.map(g=>g.model),...doorFrames,...(breakerPanels?.models??[]),...(dressing?.models??[]),...straySigns,...(watchers?.models??[]),warningWallRepair?.model,...(wallWriting?.models??[]),...(warningRoom?.models??[]),...passages,...exitDoor,...maintenanceModels,...(water?.models??[]),flashlightModel,...lockerInstances.map(x=>x.visual.model),...(bustPyramid?.models??[]),bacteriaShadow,bacteria,hazmatModel,skinModel].filter(Boolean);const mood=presentAtmosphere(dt,now);sceneLight=mood.light;presentGuidance(now);presentLockerView();
    const fade=state==='ending'?{fade:Math.min(1,endingTime/2.4),fadeColor:[.78,.88,.88]}:state==='won'?{fade:.55,fadeColor:[.78,.88,.88]}:null;
    drawFrame(scene,{...atmosphere,light:mood.light,flash:state==='caught'||!flash?false:mood.torch>=.999?true:mood.torch},{time:now/1000,...mood.post,...postState,...fade});
+   titleFrameDirty=false;
   }}
  }catch(e){console.error(e);$('error').textContent=e.message;setState('menu')}
  requestAnimationFrame(tick)
@@ -737,7 +746,7 @@ async function load(){
  // Overlap a few independent downloads without decoding every large GLB at once.
  let sourceIndex=0,sourceError=null;
  $('load-label').textContent=`Loading actor 0 / ${sources.length}`;
- await Promise.all(Array.from({length:Math.min(3,sources.length)},async()=>{
+ await Promise.all(Array.from({length:Math.min(lowMemoryDevice?2:3,sources.length)},async()=>{
   while(!sourceError&&sourceIndex<sources.length){
    const [url,assign]=sources[sourceIndex++];
    try{assign(await renderer.load(url));loadCount++;if(!sourceError){$('load-label').textContent=`Loading actor ${loadCount} / ${sources.length}`;$('load-fill').style.width=loadCount/(sources.length+4)*100+'%'}}

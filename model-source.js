@@ -1,5 +1,10 @@
 // The renderer and rig/geometry readers use the same immutable GLB bytes.
 // Retain only the startup models with two readers, releasing each on reuse.
+// Keep caller/source identities intact; only transport uses the derived GLBs.
+const optimizedModelURLs = new Map([
+  'flashlight', 'hazmat', 'skinstealer', 'warning-signs-set', 'office-chair',
+  'electrical-box', 'sculpture-bust-roza', 'vent',
+].map(name => [`assets/models/${name}.glb`, `assets/models/optimized/${name}.glb`]));
 let pendingReuse = null;
 
 export function beginModelLoadBatch(urls) {
@@ -19,7 +24,7 @@ export function loadModelBuffer(url) {
     return buffer;
   }
   const buffer = (async () => {
-    const response = await fetch(url);
+    const response = await fetch(optimizedModelURLs.get(url) ?? url);
     if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
     return response.arrayBuffer();
   })();

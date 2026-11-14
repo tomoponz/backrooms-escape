@@ -327,6 +327,9 @@ export function createSourceWorldNavigation(data, layout = {}) {
     return found;
   };
   const pathCache = new Map(), fieldCache = new Map();
+  // Searches are synchronous. Reuse their grid-sized scratch storage instead
+  // of allocating it again whenever an enemy needs an uncached route.
+  let searchCosts, searchPrevious, searchClosed;
   let topologyVersion = 0;
   Object.defineProperty(nav, 'topologyVersion', {enumerable:true, get:() => topologyVersion});
   nav.isGateOpen = id => gates.get(id)?.open ?? false;
@@ -348,7 +351,8 @@ export function createSourceWorldNavigation(data, layout = {}) {
       if (route.length && route.at(-1) === end) { if (pathCache.size >= 48) pathCache.delete(pathCache.keys().next().value); pathCache.set(key, route); return [...route]; }
       if (fieldCache.get(end)[start] < 0) return [];
     }
-    const costs = new Float64Array(length).fill(Infinity), previous = new Int32Array(length).fill(-1), closed = new Uint8Array(length), heap = [];
+    const costs = searchCosts ??= new Float64Array(length), previous = searchPrevious ??= new Int32Array(length), closed = searchClosed ??= new Uint8Array(length), heap = [];
+    costs.fill(Infinity); previous.fill(-1); closed.fill(0);
     const ec = end % width, er = Math.floor(end / width);
     const heuristic = i => (Math.abs(i % width - ec) + Math.abs(Math.floor(i / width) - er)) * step;
     const push = (i, score) => {

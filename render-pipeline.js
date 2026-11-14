@@ -95,7 +95,7 @@ const locations = (g, program, names) => Object.fromEntries(names.map(name => [n
 /** Pixel budgets: the scene is drawn at "internal" size and presented at "output" size. */
 export const QUALITY_PRESETS = Object.freeze({
   high: Object.freeze({outputPixels: 2560 * 1440, internalPixels: 1920 * 1080, samples: 4, bloom: .55, maxRatio: 2}),
-  low: Object.freeze({outputPixels: 1600 * 900, internalPixels: 1152 * 648, samples: 2, bloom: 0, maxRatio: 1.25}),
+  low: Object.freeze({outputPixels: 1600 * 900, internalPixels: 1152 * 648, samples: 0, bloom: 0, maxRatio: 1.25}),
 });
 
 /** Choose canvas (output) and scene (internal) sizes for a CSS box. Pure; unit-tested. */
