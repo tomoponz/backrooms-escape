@@ -43,15 +43,17 @@ export function createHorrorDirector({regionIds = [], outdoor = [], neighbours =
   }
 
   /** World events from the objective. `region` is where it happened. */
-  function notify(event, {region = null, restored = 0, total = 1} = {}) {
+  function notify(event, {region = null, restored = 0, total = 1, quiet = false} = {}) {
     if (event === 'exit-examined') {
       dip(null, .3, .12, .5, 1.4);
       queued.push({type: 'hum-drop', duration: .7});
       later(.55, {type: 'bang', volume: .34, pan: random() < .5 ? -.7 : .7});
     } else if (event === 'breaker-restored' || event === 'power-restored') {
       stage = Math.max(stage, restored);
-      dip(null, .18, .08, .7, 1.8);
-      queued.push({type: 'hum-drop', duration: .9});
+      if (!quiet) {
+        dip(null, .18, .08, .7, 1.8);
+        queued.push({type: 'hum-drop', duration: .9});
+      }
       // The circuit that came back takes another one down: the room around the
       // breaker and one neighbour lose their lights for the rest of the run.
       const lit = indoor.filter(id => target.get(id) === 1 && !protectedRooms.has(id));
@@ -59,10 +61,10 @@ export function createHorrorDirector({regionIds = [], outdoor = [], neighbours =
       const around = (neighbours[region] ?? []).filter(id => lit.includes(id) && id !== local);
       const chosen = [local, around.length ? around[Math.floor(random() * around.length)] : null].filter(Boolean);
       for (const id of chosen) target.set(id, HORROR_RULES.darkLevel);
-      later(.9, {type: 'bang', volume: .26, pan: random() < .5 ? -.8 : .8});
+      if (!quiet) later(.9, {type: 'bang', volume: .26, pan: random() < .5 ? -.8 : .8});
       if (event === 'power-restored' || restored >= total) {
         emergency = true;
-        later(1.6, {type: 'door', volume: .3, pan: 0});
+        if (!quiet) later(1.6, {type: 'door', volume: .3, pan: 0});
       }
     }
   }

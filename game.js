@@ -91,7 +91,7 @@ const LOCKER_TRANSITION_SECONDS=2.05, LOCKER_ANIMATION_SPEED=2;
 function notice(text,duration=5){$('message').textContent=text;noticeUntil=performance.now()+duration*1000}
 function setState(next){let previous=state;state=next;titleFrameDirty=true;if(next!=='playing')warningRoom?.update(camera,false);if(document.body.dataset)document.body.dataset.gameState=next;for(let id of ['menu','pause','result','hud'])$(id).hidden=true;$('map-wrap').hidden=true;input?.clear();keys.clear();if(next==='menu')$('menu').hidden=false;if(next==='paused')$('pause').hidden=false;if(next==='playing')$('hud').hidden=false;if(next==='lost'||next==='won')$('result').hidden=false;if(next!=='playing'){input?.releasePointerLock();$('danger').style.opacity=0}if(next!=='caught'){$('danger').style.backgroundColor='transparent';$('danger').style.boxShadow=''}if(next!=='inventory')inventoryUI?.close();if(next!=='caught')sound.setState(next==='inventory'?'paused':next,{silent:previous==='caught'&&next==='lost'})}
 function requestMouse(){input?.requestPointerLock()}
-function activateStage(index){
+function activateStage(index, breakerCheckpoint){
  stageIndex=index;stage=world.stages[index];nav=world.nav;fall=null;
  player=nav.point(nav.start);yaw=stage.spawnYaw;pitch=0;collected.clear();
  hiding?.reset();for(const item of lockerInstances)item.visual.setOpenFraction(0);bustPyramid?.reset();
@@ -103,7 +103,17 @@ function activateStage(index){
  encounter=createEncounterDirector({nav,enemy,director:enemyDirector,exit:objective.exit,maintenance:objective.maintenance});
  skinCaptureActor='bacteria';skinFootDistance=0;hazmatAnimator?.reset();skinAnimator?.reset();skinState=skinDirector?.reset(difficulty)??null;
  if(hazmatModel)hazmatModel.visible=false;if(skinModel)skinModel.visible=false;
- objective?.reset();returnHintReached=false;setOutdoorDoor(false);guidance?.reset();horror?.reset();breakerPanels?.reset();watchers?.reset();dressing?.reset();jam={pried:false,known:false,progress:0};shadowIntro={phase:'waiting',time:0};if(bacteriaShadow)bacteriaShadow.visible=false;pitDread=0;pitNoticeAt=-99;operationTarget=null;endingTime=0;objectiveShownAt=0;struggle=null;escapesLeft=STRUGGLE.escapes;graceUntil=0;enemyStunUntil=0;skinStunUntil=0;aftermath=0;lockerCloseAt=null;bustLoud=false;bustCooldown=0;showStruggle(false);sound.setLoop?.('heartbeat',0,.1);sound.setLoop?.('chase_bgm',0,.1);phantomSteps=[];postState={};overlayItems=[];guideInfo=null;water?.reset();observations?.reset();exploration?.cancelPending();explored.clear();discovered.clear();explorationClock=0;operationTime=0;staminaDelay=0;revealSurroundings();
+ objective?.reset(breakerCheckpoint?.restored);returnHintReached=false;setOutdoorDoor(false);guidance?.reset();horror?.reset();breakerPanels?.reset();watchers?.reset();dressing?.reset();jam={pried:breakerCheckpoint?.pried??false,known:false,progress:0};shadowIntro={phase:'waiting',time:0};if(bacteriaShadow)bacteriaShadow.visible=false;pitDread=0;pitNoticeAt=-99;operationTarget=null;endingTime=0;objectiveShownAt=0;struggle=null;escapesLeft=STRUGGLE.escapes;graceUntil=0;enemyStunUntil=0;skinStunUntil=0;aftermath=0;lockerCloseAt=null;bustLoud=false;bustCooldown=0;showStruggle(false);sound.setLoop?.('heartbeat',0,.1);sound.setLoop?.('chase_bgm',0,.1);phantomSteps=[];postState={};overlayItems=[];guideInfo=null;water?.reset();observations?.reset();exploration?.cancelPending();explored.clear();discovered.clear();explorationClock=0;operationTime=0;staminaDelay=0;revealSurroundings();
+ // Restore completion and its lasting effects, without replaying the event.
+ if(breakerCheckpoint){
+  const ids=breakerCheckpoint.restored, total=objective.breakers.length;
+  ids.forEach((id,i)=>{
+   const panel=objective.breakers.find(b=>b.id===id);
+   breakerPanels?.set(id,{restored:true});
+   const region=nav.regionIds?.[nav.regionAt(...panel.position)]??null;
+   horror?.notify(i+1===total?'power-restored':'breaker-restored',{region,restored:i+1,total,quiet:true});
+  });
+ }
  camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;
  atmosphere={...stage.atmosphere,fog:[...stage.atmosphere.fog]};
  setArea(index);updateHUD();
@@ -115,7 +125,9 @@ function setArea(index){
  if($('chapter-progress'))$('chapter-progress').textContent='ONE CONTINUOUS WORLD';
 }
 
-function start(options={}){if(!world||!bacteria||renderingUnavailable)return;deathSequence?.reset();infectionSequence?.reset();sound.stopCue('chant');sound.init();sound.setVolume(+$('volume').value/100);difficulty=$('difficulty').value;quality=$('quality').value;motion=$('motion').checked;elapsed=0;stamina=100;sprintReady=true;footClock=0;camera.fov=74;flash=false;qaRoute=null;qaMessage='';inventory.reset();itemSlots?.reset();glimpse.reset();activateStage(0);if(options?.showAwakening){awakening??=createAwakening({document,window,onFinish:finishAwakening});setState('awakening');awakening.start()}else{setState('playing');notice('前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);requestMouse();updateHUD()}}
+function start(options={}){if(!world||!bacteria||renderingUnavailable)return;
+ const breakerCheckpoint=options.resumeBreakers&&state==='lost'?{restored:objective.state.restored??objective.breakers.filter(b=>objective.isRestored(b.id)).map(b=>b.id),pried:jam.pried}:null;
+ deathSequence?.reset();infectionSequence?.reset();sound.stopCue('chant');sound.init();sound.setVolume(+$('volume').value/100);difficulty=$('difficulty').value;quality=$('quality').value;motion=$('motion').checked;elapsed=0;stamina=100;sprintReady=true;footClock=0;camera.fov=74;flash=false;qaRoute=null;qaMessage='';inventory.reset();itemSlots?.reset();glimpse.reset();activateStage(0,breakerCheckpoint);if(options?.showAwakening){awakening??=createAwakening({document,window,onFinish:finishAwakening});setState('awakening');awakening.start()}else{setState('playing');notice(breakerCheckpoint?.restored.length?'復旧済みの配電盤はそのまま。懐中電灯は前方の床に落ちている。':'前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);requestMouse();updateHUD()}}
 function finishAwakening(userGesture=false){if(state!=='awakening')return;camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;setState('playing');notice('前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);if(userGesture)requestMouse();updateHUD()}
 function pause(){if(state==='playing'){operationTime=0;if($('pause-description'))$('pause-description').textContent='敵も時間も、止まっています。';setState('paused')}}
 function openInventory(){if(state!=='playing'||!inventoryUI)return;operationTime=0;setState('inventory');inventoryUI.open()}
@@ -712,7 +724,7 @@ function tick(now){
  }catch(e){console.error(e);$('error').textContent=e.message;setState('menu')}
  requestAnimationFrame(tick)
 }
-$('start').onclick=()=>{if(state!=='menu')return;if(!introSequence){start();return}setState('intro');if(!introSequence.start({volume:+$('volume').value/100}))start()};$('resume').onclick=resume;$('retry').onclick=start;$('retry-pause').onclick=start;$('title-pause').onclick=title;$('title-result').onclick=title;$('credits-open').onclick=()=>{$('credits').hidden=false};$('credits-close').onclick=()=>{$('credits').hidden=true};
+$('start').onclick=()=>{if(state!=='menu')return;if(!introSequence){start();return}setState('intro');if(!introSequence.start({volume:+$('volume').value/100}))start()};$('resume').onclick=resume;$('retry').onclick=()=>start({resumeBreakers:true});$('retry-pause').onclick=start;$('title-pause').onclick=title;$('title-result').onclick=title;$('credits-open').onclick=()=>{$('credits').hidden=false};$('credits-close').onclick=()=>{$('credits').hidden=true};
 input=createGameInput({document,window,canvas,keys,getState:()=>state,
  actions:{collect,struggle:struggleTap,selectSlot:index=>itemSlots?.select(index),useSelectedSlot,toggleFlash,toggleMap:()=>{$('map-wrap').hidden=!$('map-wrap').hidden;drawMap()},
   openInventory,closeInventory,pause,exitFullscreen:()=>{if(document.fullscreenElement===document.documentElement)try{document.exitFullscreen?.()?.catch?.(()=>{})}catch{}},closeCredits:()=>{if($('credits').hidden)return false;$('credits').hidden=true;return true}},

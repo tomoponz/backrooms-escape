@@ -209,8 +209,9 @@ export function createEscapeObjective(nav, anchors = {}) {
     if(multiple)return doorExamined||restored.size?`配電盤のブレーカーを上げる（${restored.size} / ${breakers.length}）`:'出口を探す';
     return doorExamined ? '出口回路の保守制御を探す' : '出口を探す';
   }
-  function reset() {
+  function reset(restoredIds = []) {
     restored.clear();
+    for (const id of restoredIds) if (breakerIds.has(id)) restored.add(id);
     doorExamined = false;
     doorOpened = false;
     escaped = false;
