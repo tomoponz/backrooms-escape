@@ -2,7 +2,7 @@
 // maintenance circuit must be restored. This module owns no world/UI objects.
 import {pathDistance} from './navigation-metrics.js';
 const INTERACTION_RANGE = 1.7;
-const ESCAPE_ARRIVAL_RANGE = .75;
+const ESCAPE_ARRIVAL_RANGE = 2.5;
 const CLEARANCE = .8;
 const validPoint = p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite);
 

@@ -4,16 +4,27 @@ import {readFileSync} from 'node:fs';
 import {SOURCE_WORLD_LAYOUT} from '../source-world-layout.js';
 import {createForbiddenRoomNavigation} from '../forbidden-room-navigation.js';
 import {createSetDressing,BOX_SEARCH_RANGE} from '../set-dressing.js';
-import {selectAlmondWaterPositions} from '../almond-water.js';
+import {selectAlmondWaterPositions,createAlmondWaterPickups,registerAlmondWater,ALMOND_WATER_ID} from '../almond-water.js';
 import {createSkinstealerDirector} from '../skinstealer-director.js';
+import {readGLB} from '../renderer-resources.js';
+import {createInventory} from '../inventory.js';
+import {createFlashlightPickup,FLASHLIGHT_ID} from '../flashlight-pickup.js';
+import {collectNearbyFloorItems} from '../floor-pickup.js';
 
 const data=JSON.parse(readFileSync(new URL('../assets/source-world-navigation.json',import.meta.url),'utf8'));
 const distance=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
-function fixture(){
+const source=readFileSync(new URL('../assets/models/cardboard-box.glb',import.meta.url));
+const {json:boxAsset}=readGLB(source.buffer.slice(source.byteOffset,source.byteOffset+source.byteLength));
+assert.deepEqual(boxAsset.nodes,[{mesh:0,name:'cardboard_box_01'}],'the approved box has one untransformed source mesh');
+const boxBounds=boxAsset.accessors[boxAsset.meshes[0].primitives[0].attributes.POSITION];
+const boxModel={min:boxBounds.min,max:boxBounds.max};
+function fixture(previous=false){
  const layout=structuredClone(SOURCE_WORLD_LAYOUT);
+ if(previous)Object.assign(layout.props.find(p=>p.id==='box-crowbar'),{
+  position:[-69.6,59.4],region:'original-far-south-southwest'});
  const {nav,lockers}=createForbiddenRoomNavigation(data,layout);
- // Rendering bounds are immaterial to the physical stand/search calculation.
- const dressing=createSetDressing({nav,props:layout.props,models:{box:{min:[-.5,0,-.5],max:[.5,1,.5]}}});
+ // Use the current original GLB bounds for the actual rendered footprint.
+ const dressing=createSetDressing({nav,props:layout.props,models:{box:boxModel}});
  return {layout,nav,lockers,dressing,box:dressing.find('crowbar')};
 }
 function routeSamples(nav,route,speed,dt=.1){
@@ -35,21 +46,24 @@ function routeSamples(nav,route,speed,dt=.1){
 }
 
 test('crowbar has a reachable, collision-aligned search stand without competing interactions',()=>{
- const {layout,nav,lockers,dressing,box}=fixture();
+ const {layout,nav,lockers,dressing,box}=fixture(),previous=fixture(true);
  assert.equal(layout.props.filter(p=>p.contains==='crowbar').length,1);
- assert.deepEqual(box.position,[-69.6,59.4]);
- assert.equal(nav.regionIds[nav.regionAt(...box.stand.position)],'original-far-south-southwest');
+ assert.deepEqual(layout.props.find(p=>p.id==='box-crowbar'),{id:'box-crowbar',type:'box',position:[-80.4,-7.4],yaw:.4,contains:'crowbar',region:'original-far-west'});
+ assert.equal(BOX_SEARCH_RANGE,1.45,'moving the box must not widen searching');
+ assert.equal(nav.regionIds[nav.regionAt(...box.stand.position)],'original-far-west');
  assert(nav.canWalk(...box.stand.position));
  assert(distance(box.position,box.stand.position)<BOX_SEARCH_RANGE);
- assert(!nav.canWalk(...box.position),'the box remains solid');
- assert(nav.canWalk(-80.4,-7.4),'the temporary far-west box location is clear');
+ assert(!nav.canWalk(...box.position),'the relocated box remains solid');
+ assert(nav.canWalk(...previous.box.position),'the previous box location is clear');
  assert.equal(nav.setGateOpen('prop:box-crowbar',true),false);
  assert(!nav.canWalk(...box.position),'a prop cannot be opened as a door');
  const maintenance=nav.nearest(-24.05,14.1);
  const water=selectAlmondWaterPositions(nav,maintenance);
- for(const p of water)assert(distance(box.stand.position,p)>2,'water cannot intercept E at the box');
+ assert.deepEqual(water,selectAlmondWaterPositions(previous.nav,previous.nav.nearest(-24.05,14.1)),
+  'moving the box must not move loose supplies');
+ for(const p of water)assert(distance(box.stand.position,p)>2,'water cannot intercept E at the guided search stand');
  const spawn=nav.point(nav.start),flashlight=[spawn[0]+1.68,spawn[1]-1.6];
- assert(distance(box.stand.position,flashlight)>2);
+ assert(distance(box.position,flashlight)>BOX_SEARCH_RANGE+2,'flashlight auto-pickup cannot overlap the search area');
  for(const locker of lockers)assert(distance(box.stand.position,locker.approach)>1.35);
  for(const point of [nav.point(nav.exit),nav.point(maintenance),...layout.breakers.map(b=>b.stand)]){
   assert(distance(box.stand.position,point)>1.7);
@@ -57,13 +71,28 @@ test('crowbar has a reachable, collision-aligned search stand without competing 
   assert(nav.path(box.stand.i,end).length>0,'the box must retain routes to every breaker and exit');
  }
  assert(nav.path(nav.start,box.stand.i).length>0);
- // All existing interior joins remain passable with the restored footprint.
+ // All existing interior joins remain passable with the new solid footprint.
  for(const join of layout.joins.filter(j=>j.id!=='outdoor-threshold')){
   const index=nav.nearest((join.min[0]+join.max[0])/2,(join.min[2]+join.max[2])/2);
   assert(nav.path(box.stand.i,index).length>0,join.id);
  }
  nav.setGateOpen('outdoor-door',true);
  assert(nav.path(box.stand.i,nav.escape).length>0,'the final outdoor destination remains reachable');
+ // The unchanged bottle west of the box can overlap the western search area.
+ // The guidance stand must remain usable with either an empty or full inventory.
+ const inventory=createInventory();registerAlmondWater(inventory);
+ inventory.register({id:FLASHLIGHT_ID,name:'Flashlight',available:true,maxStack:1});
+ const drinks=createAlmondWaterPickups({inventory,nav,positions:water,model:{min:[-.1,0,-.1],max:[.1,.36,.1],meshes:[]}});
+ const light=createFlashlightPickup({nav,inventory,acquire:()=>inventory.add(FLASHLIGHT_ID,1)});
+ for(const full of [false,true]){
+  if(full)inventory.add(ALMOND_WATER_ID,3);
+  assert.equal(drinks.nearest(box.stand.position),null);
+  assert.equal(light.nearest(box.stand.position),null);
+  assert.deepEqual(collectNearbyFloorItems(box.stand.position,{flashlight:light,water:drinks,canCarryWater:!full}),{light:null,drink:null});
+  assert.equal(inventory.count(ALMOND_WATER_ID),full?3:0);
+  assert.equal(dressing.nearestBox(box.stand.position)?.id,'box-crowbar');
+ }
+ light.dispose();
  assert.equal(dressing.nearestBox(box.stand.position)?.id,'box-crowbar');
  assert.equal(dressing.search(box.stand.position).contains,'crowbar');
  assert.equal(dressing.find('crowbar'),null);
@@ -81,11 +110,19 @@ test('every sampled search position has a clear view through the actual room geo
  assert(clear.canWalk(...box.position),'box centre must stand on actual open floor');
  const floor=clear.floorAt(...box.position);
  assert(Number.isFinite(floor));
+ // Sample the entire actual rotated base, including its corners and interior.
+ const m=box.model.matrix;
+ for(let xi=0;xi<=20;xi++)for(let zi=0;zi<=20;zi++){
+  const x=boxModel.min[0]+(boxModel.max[0]-boxModel.min[0])*xi/20,y=boxModel.min[1],z=boxModel.min[2]+(boxModel.max[2]-boxModel.min[2])*zi/20;
+  const world=[0,1,2].map(axis=>m[axis]*x+m[4+axis]*y+m[8+axis]*z+m[12+axis]);
+  assert(clear.canWalk(world[0],world[2]),'the current GLB base must clear walls and other props');
+  assert(Math.abs(clear.floorAt(world[0],world[2])-world[1])<.001,'every base sample must rest on supported floor');
+ }
  // A conservative 70cm square encloses the approved 36cm-high box's rotated
  // base (58.7cm x 65.9cm at yaw .4), including its complete interior.
  for(let x=-.35;x<=.3501;x+=.05)for(let z=-.35;z<=.3501;z+=.05){
   const p=[box.position[0]+x,box.position[1]+z];
-  assert(clear.canWalk(...p),'the entire model base must clear the room geometry');
+  assert(clear.canWalk(...p),'the entire model base must clear the partition');
   assert(Math.abs(clear.floorAt(...p)-floor)<.001,'the base must rest on level supported floor');
  }
  let checked=0;
@@ -98,11 +135,43 @@ test('every sampled search position has a clear view through the actual room geo
   for(let z=-BOX_SEARCH_RANGE;z<=BOX_SEARCH_RANGE+.0001;z+=.025)
    if(Math.hypot(x,z)<=BOX_SEARCH_RANGE)check([box.position[0]+x,box.position[1]+z]);
  // Also cover the circular boundary between grid samples, where a tiny sliver
- // of floor behind an obstacle could otherwise be missed.
- for(const radius of [BOX_SEARCH_RANGE-.001,BOX_SEARCH_RANGE-.01])
+ // of floor on the opposite side of the partition could otherwise be missed.
+ for(const radius of [BOX_SEARCH_RANGE,BOX_SEARCH_RANGE-.001,BOX_SEARCH_RANGE-.01])
   for(let angle=0;angle<Math.PI*2;angle+=Math.PI/360)
    check([box.position[0]+Math.cos(angle)*radius,box.position[1]+Math.sin(angle)*radius]);
  assert(checked>5000,'exercise the actual walkable search area');
+ const otherSide=[-78.57,-7.29];
+ assert(nav.canWalk(...otherSide));
+ assert(!clear.visible(otherSide,box.position));
+ assert.equal(dressing.nearestBox(otherSide),null,'the opposite side of the partition cannot search the box');
+});
+
+function approachContacts({nav,box}){
+ const director=createSkinstealerDirector({nav}),patrol=[];
+ for(let n=0;n<1800;n++)patrol.push(director.update({dt:.1,player:[0,0],mayNotice:false}).position);
+ const counts={spawn:0,maintenance:0,breaker:0};
+ for(const [name,start] of [['spawn',nav.start],['maintenance',nav.nearest(-24.05,14.1)],['breaker',nav.nearest(-87.05,56.4)]]){
+  const route=nav.path(start,box.stand.i);
+  for(const speed of [3.4,5.9]){
+   const players=routeSamples(nav,route,speed);
+   for(let offset=0;offset<=60;offset+=5){
+    if(players.some((player,n)=>{
+     const person=patrol[offset*10+n];
+     return person&&distance(player,person)<=4.5&&nav.visible(player,person);
+    }))counts[name]++;
+   }
+  }
+ }
+ return counts;
+}
+
+test('real navigation routes now intersect the existing visible Hazmat patrol',()=>{
+ // Controlled route coverage, not a prediction of human encounter probability:
+ // 3 origins x 2 speeds x 13 patrol offsets. No NPC teleport or notice changes.
+ const before=approachContacts(fixture(true)),after=approachContacts(fixture());
+ assert.deepEqual(before,{spawn:0,maintenance:0,breaker:0});
+ for(const [origin,count] of Object.entries(after))assert(count>0,origin);
+ assert(Object.values(after).reduce((a,b)=>a+b,0)>=39,'at least half of sampled approaches meet visible patrol range');
 });
 
 for(const difficulty of ['normal','easy'])test(`${difficulty} preserves the full transformation and retreat windows`,()=>{
