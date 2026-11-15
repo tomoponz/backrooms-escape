@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="ui-art.css">
   <link rel="stylesheet" href="ui-frames.css">
   <link rel="stylesheet" href="title-music.css">
+  <link rel="stylesheet" href="ranking.css">
   <link rel="icon" href="data:,">
 </head>
 <body>
@@ -52,7 +53,7 @@
       <div class="hud-right">
         <span id="chapter-progress" class="chapter-progress"></span>
         <span id="count">EXIT / 探索中</span>
-        <span id="timer" aria-label="経過時間">00:00</span>
+        <span id="timer" aria-label="記録用経過時間">00:00</span>
         <small id="lamp">LIGHT / 未取得</small>
         <small id="escapes" aria-label="振りほどける残り回数"></small>
       </div>
@@ -120,7 +121,7 @@
         </details>
       </details>
       <p class="warning menu-warning">追跡・突然の音・暗い表現があります。</p>
-      <div class="menu-legal"><button id="credits-open" class="text-button" type="button">素材・規約</button></div>
+      <div class="menu-legal"><button id="ranking-open" class="text-button" type="button" aria-haspopup="dialog" aria-controls="ranking-modal">ランキング</button><button id="credits-open" class="text-button" type="button">素材・規約</button></div>
     </div>
     <div class="corner" aria-hidden="true">蛍光灯の音だけが、続いている。</div>
   </section>
@@ -147,8 +148,45 @@
       <p id="result-text"></p>
       <div id="result-stats" aria-label="探索時間"></div>
       <p id="result-detail" class="result-detail"></p>
+      <div id="ranking-result" class="ranking-result" hidden>
+        <p id="ranking-result-summary" class="ranking-result-summary"></p>
+        <p id="ranking-result-note" class="ranking-result-note"></p>
+        <div id="ranking-name-field" class="ranking-name-field" hidden>
+          <label for="ranking-name">名前 <small>任意・12文字まで</small></label>
+          <input id="ranking-name" type="text" maxlength="12" value="ゲスト" autocomplete="off" spellcheck="false" aria-describedby="ranking-name-help ranking-name-status">
+          <small id="ranking-name-help">空欄はゲスト。Enterか入力欄を離れると保存。</small>
+          <span id="ranking-name-status" role="status" aria-live="polite"></span>
+        </div>
+        <button id="ranking-result-open" class="text-button" type="button" aria-haspopup="dialog" aria-controls="ranking-modal">上位10件を見る</button>
+      </div>
       <button id="retry">もう一度</button>
       <button id="title-result" class="text-button">タイトルへ</button>
+    </div>
+  </section>
+
+  <section id="ranking-modal" class="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="ranking-title" aria-describedby="ranking-scope">
+    <div class="panel ranking-panel">
+      <div class="ranking-header">
+        <div><span class="eyebrow">LOCAL RECORD / TOP 10</span><h2 id="ranking-title">ランキング</h2></div>
+        <button id="ranking-close" class="text-button" type="button">閉じる</button>
+      </div>
+      <p id="ranking-scope" class="ranking-scope">このブラウザーに保存したクリア記録です。</p>
+      <div class="ranking-toolbar"><label for="ranking-difficulty">探索モード</label><select id="ranking-difficulty"><option value="normal">標準 / 追跡あり</option><option value="easy">やさしい / 敵がゆっくり</option><option value="explore">探索 / 敵なし</option></select></div>
+      <p id="ranking-storage" class="ranking-storage" role="status" aria-live="polite" hidden></p>
+      <div class="ranking-scroll" tabindex="0" role="region" aria-label="ランキングと集計ルール">
+        <table id="ranking-table">
+          <caption id="ranking-caption" class="ui-visually-hidden">クリアタイム上位10件</caption>
+          <thead><tr><th scope="col">順位</th><th scope="col">名前</th><th scope="col">タイム</th></tr></thead>
+          <tbody id="ranking-rows"></tbody>
+        </table>
+        <p id="ranking-empty" class="ranking-empty" hidden>このモードのクリア記録はまだありません。</p>
+        <details class="ranking-rules">
+          <summary>記録のルール</summary>
+          <p>プレイ開始から脱出までの実時間（演出中を含む）です。一時停止・所持品画面・結果画面の待ち時間は除きます。</p>
+          <p>進行状況を引き継がない再挑戦は、それまでのプレイ時間も合算します。</p>
+          <p>配電盤の復旧・カバー開放を引き継いだ再挑戦、無敵・検証用のプレイは対象外です。</p>
+        </details>
+      </div>
     </div>
   </section>
 

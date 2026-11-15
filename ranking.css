@@ -1,0 +1,55 @@
+/* Native text and controls share the existing muted menu palette. */
+#menu .menu-legal { display:flex; flex-wrap:wrap; align-items:center; gap:8px 24px; }
+#menu .menu-legal #ranking-open { min-height:32px; padding:4px 0; margin:0; font:14px/1.6 "Yu Mincho",serif; letter-spacing:.04em; color:#d9d2b8; text-decoration:underline; text-underline-offset:3px; }
+
+#ranking-modal { z-index:50; background:#050704ec; padding:24px; }
+#ranking-modal .ranking-panel { width:min(620px,100%); max-height:calc(100vh - 48px); max-height:calc(100dvh - 48px); display:flex; flex-direction:column; padding:24px 28px; background:#10140ff5; border:1px solid #b8b29466; border-top:2px solid #d6c89c; }
+.ranking-header { display:flex; align-items:center; justify-content:space-between; gap:20px; flex:none; }
+.ranking-header .eyebrow { font-size:10px; color:#b7b096; }
+#ranking-title { margin:5px 0 0; font:27px/1.4 "Yu Mincho","Hiragino Mincho ProN",serif; letter-spacing:.12em; }
+#ranking-close { flex:none; min-height:40px; padding:8px 4px; font-size:15px; }
+.ranking-scope { margin:10px 0 16px; color:#c1bda9; font-size:12px; line-height:1.65; }
+.ranking-toolbar { display:flex; flex:none; align-items:center; gap:12px; margin-bottom:14px; }
+.ranking-toolbar label { flex:none; font-size:13px; }
+.ranking-toolbar select { min-width:0; font-size:14px; min-height:40px; }
+.ranking-storage { flex:none; margin:0 0 12px; color:#ead1a4; font-size:12px; line-height:1.65; }
+.ranking-scroll { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-gutter:stable; padding:2px 6px 2px 2px; }
+#ranking-table { width:100%; border-collapse:collapse; table-layout:fixed; font-size:14px; }
+#ranking-table th,#ranking-table td { padding:10px 8px; border-bottom:1px solid #b8b29430; text-align:left; overflow-wrap:anywhere; }
+#ranking-table thead th { color:#bbb69f; font-size:12px; font-weight:400; }
+#ranking-table th:first-child { width:56px; }
+#ranking-table th:last-child { width:128px; text-align:right; }
+#ranking-table tbody th { font:14px/1.5 var(--mono); color:#dacfaa; }
+#ranking-table .ranking-time { font:14px/1.5 var(--mono); font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap; }
+#ranking-table tr[data-current="true"] { background:#d6c89c10; color:#fff0be; }
+.ranking-current { display:inline-block; margin-left:8px; font-size:10px; color:#d9c99d; }
+.ranking-empty { padding:24px 8px; color:#c6c0aa; font-size:14px; line-height:1.8; text-align:center; }
+.ranking-rules { margin-top:18px; padding-top:12px; border-top:1px solid #b8b29445; }
+.ranking-rules summary { font-size:13px; padding:4px 0; }
+.ranking-rules p { margin:10px 0 0; color:#bbb7a4; font-size:12px; line-height:1.8; }
+
+body[data-game-state="won"] #result-stats { position:static; width:auto; height:auto; overflow:visible; clip-path:none; white-space:normal; margin:12px 0; padding:10px 0; font-size:15px; font-variant-numeric:tabular-nums; }
+#result .result-panel:has(#ranking-result:not([hidden])) { max-height:calc(100vh - 48px); max-height:calc(100dvh - 48px); overflow:auto; overscroll-behavior:contain; padding:4px 12px; }
+#result .ranking-result { margin:14px auto; width:min(440px,100%); padding:14px 18px 10px; border:1px solid #b8b29445; background:#0e150fc9; text-align:left; }
+#result .ranking-result-summary { margin:0; color:#e9dfb8; font-size:18px; line-height:1.5; }
+#result .ranking-result-note { margin:5px 0 0; font-size:12px; line-height:1.6; color:#c6c3b0; }
+.ranking-name-field { display:grid; grid-template-columns:auto minmax(0,1fr); gap:6px 12px; align-items:center; margin-top:14px; }
+.ranking-name-field label { font-size:13px; }
+.ranking-name-field label small { display:block; font-size:10px; color:#aaa891; }
+#ranking-name { width:100%; min-width:0; height:38px; padding:7px 10px; border:1px solid #8d8c6f; border-radius:0; background:#0d110ce6; color:#eee9d5; font-size:15px; }
+#ranking-name-help,#ranking-name-status { grid-column:1 / -1; font-size:11px; line-height:1.6; color:#b7b39c; }
+#ranking-name-status:empty { display:none; }
+#result #ranking-result-open { min-height:36px; padding:7px 0; margin:8px 0 0; width:auto; font:13px/1.5 "Yu Gothic UI",sans-serif; letter-spacing:.02em; text-shadow:none; text-decoration:underline; text-underline-offset:4px; }
+
+@media(max-width:540px),(max-height:600px) {
+ #ranking-modal { padding:12px; }
+ #ranking-modal .ranking-panel { max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px); padding:16px 18px; }
+ #ranking-title { font-size:24px; }
+ .ranking-scope { margin:8px 0 12px; }
+ .ranking-toolbar { gap:8px; margin-bottom:10px; }
+ #ranking-table th,#ranking-table td { padding:9px 5px; }
+ #ranking-table th:first-child { width:42px; }
+ #ranking-table th:last-child { width:112px; }
+ #result .result-panel:has(#ranking-result:not([hidden])) { max-height:calc(100vh - 48px); max-height:calc(100dvh - 48px); padding-inline:8px; }
+ #result .ranking-result { padding:12px; }
+}

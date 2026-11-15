@@ -5,11 +5,11 @@ export function installModalAccessibility({document,window}) {
   if(!Observer||!document?.querySelectorAll||!document.body?.children)
     return {dispose(){}};
 
-  const modalIds=['credits','intro-sequence','inventory-panel','pause','result'];
-  const preferred={credits:'#credits-close','intro-sequence':'.intro-sequence-begin, .intro-sequence-skip','inventory-panel':'.inventory-close',pause:'#resume',result:'#retry'};
+  const modalIds=['ranking-modal','credits','intro-sequence','inventory-panel','pause','result'];
+  const preferred={'ranking-modal':'#ranking-close',credits:'#credits-close','intro-sequence':'.intro-sequence-begin, .intro-sequence-skip','inventory-panel':'.inventory-close',pause:'#resume',result:'#retry'};
   const selector='button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), summary, [tabindex]:not([tabindex="-1"])';
-  const known=new Set(),inertBefore=new Map();
-  let active=null,returnFocus=null,disposed=false;
+  const known=new Set(),inertBefore=new Map(),returnTargets=new Map();
+  let active=null,disposed=false;
   const visible=element=>!!element&&!element.hidden&&!element.closest('[hidden]')&&element.getClientRects().length>0;
   const focusables=root=>[...root.querySelectorAll(selector)].filter(element=>visible(element)&&!element.closest('[inert]'));
   const focus=element=>element?.focus({preventScroll:true});
@@ -39,13 +39,17 @@ export function installModalAccessibility({document,window}) {
     if(disposed)return;
     const next=modalIds.map(id=>document.getElementById(id)).find(visible)||null;
     if(next===active){if(active)containBackground(active);return}
-    const previous=active,previousReturn=returnFocus;
-    contentObserver.disconnect();restoreBackground();active=next;returnFocus=null;
+    const previous=active,previousReturn=returnTargets.get(previous);
+    contentObserver.disconnect();restoreBackground();active=next;
+    for(const root of returnTargets.keys())if(!visible(root))returnTargets.delete(root);
     if(next) {
       const origin=document.activeElement;
-      returnFocus=origin!==document.body&&origin!==document.documentElement&&visible(origin)&&!next.contains(origin)?origin:null;
+      // Keep an underlying dialog's original return target while a second
+      // dialog covers it, then restore the actual button that opened the top one.
+      if(!returnTargets.has(next))returnTargets.set(next,origin!==document.body&&origin!==document.documentElement&&visible(origin)&&!next.contains(origin)?origin:null);
       containBackground(next);
-      if(!next.contains(document.activeElement))focusDefault(next);
+      if(previous&&!visible(previous)&&previousReturn&&next.contains(previousReturn)&&visible(previousReturn))focus(previousReturn);
+      else if(!next.contains(document.activeElement))focusDefault(next);
       if(next.id==='inventory-panel')contentObserver.observe(next,{childList:true,subtree:true});
     } else if(previous) {
       if(visible(previousReturn)&&!previousReturn.closest('[inert]'))focus(previousReturn);
@@ -79,6 +83,6 @@ export function installModalAccessibility({document,window}) {
   return {dispose(){
     disposed=true;visibilityObserver.disconnect();bodyObserver.disconnect();contentObserver.disconnect();
     document.removeEventListener('keydown',onKey,true);document.removeEventListener('focusin',onFocus);
-    restoreBackground();active=null;
+    restoreBackground();returnTargets.clear();active=null;
   }};
 }
