@@ -24,7 +24,7 @@ const copy = p => [p[0],p[1]];
  * reset('normal'|'easy'|'explore') restores a single dormant human; explore
  * disables the complete encounter. Call update only during actual gameplay.
  *
- * update({dt,player,running,mayNotice?}) returns an immutable snapshot with phase,
+ * update({dt,player,running,mayNotice?,canCapture?}) returns an immutable snapshot with phase,
  * position, yaw, mode, movementSpeed, collapse, humanAlpha, monsterAlpha,
  * sees, heard and caught. caught fires at most once until reset. The caller
  * is responsible for drawing, reacting to capture, and disposing GPU assets.
@@ -107,7 +107,7 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
       collapse,humanAlpha,monsterAlpha,movementSpeed:lastSpeed,sees:seen,heard,caught,elapsed,
       lastKnown:pointValid(enemy.lastKnown)?copy(enemy.lastKnown):null,witnessReached});
   }
-  function update({dt,player,running=false,mayNotice=true,hidden=false,witnessTarget=null}={}) {
+  function update({dt,player,running=false,mayNotice=true,hidden=false,witnessTarget=null,canCapture=true}={}) {
     if(!Number.isFinite(dt)||dt<=0||phase==='disabled')return snapshot(false);
     if(!hidden){witnessedLocker=null;witnessReached=false;}
     else if(!witnessedLocker&&pointValid(witnessTarget))witnessedLocker=copy(witnessTarget);
@@ -131,7 +131,7 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
       seen=result.sees;heard=result.heard;lastSpeed=distance(before,enemy.pos)/step;
       // Grace is a full time window, including when the player overlaps.
       if(phase==='grace' && phaseTime>=SKINSTEALER_RULES.retreatSeconds){phase='monster';phaseTime=0;}
-      else if(phase==='monster'&&result.caught&&!captureLatched){caught=true;captureLatched=true;}
+      else if(phase==='monster'&&canCapture&&result.caught&&!captureLatched){caught=true;captureLatched=true;}
     }
     return snapshot(caught);
   }

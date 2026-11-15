@@ -57,7 +57,7 @@ let titleFrameDirty=true,titlePixelRatio=window.devicePixelRatio;
 let world,stage,stageIndex=0,stageObjects=[],animator,passages=[],exitDoor=[],captureTime=0,atmosphere=null;
 let objective,water,enemyDirector,encounter,input,exploration,waterModel,staminaDelay=0,operationTime=0,explorationClock=0,markerElements=[],maintenanceModels=[],maintenanceFixture=null;
 let renderingUnavailable=false,sourceScene=null,returnHintReached=false;
-let observations=null,fall=null;
+let observations=null,fall=null,invulnerable=false,usedInvulnerability=false;
 let hiding=null, lockerVisual=null, lockerInstances=[], flashlightPickup=null, flashlightModel=null;
 let deathSequence=null, pendingDeath='bacteria';
 let wallWriting=null;
@@ -91,6 +91,24 @@ const LOCKER_TRANSITION_SECONDS=2.05, LOCKER_ANIMATION_SPEED=2;
 function notice(text,duration=5){$('message').textContent=text;noticeUntil=performance.now()+duration*1000}
 function setState(next){let previous=state;state=next;titleFrameDirty=true;if(next!=='playing')warningRoom?.update(camera,false);if(document.body.dataset)document.body.dataset.gameState=next;for(let id of ['menu','pause','result','hud'])$(id).hidden=true;$('map-wrap').hidden=true;input?.clear();keys.clear();if(next==='menu')$('menu').hidden=false;if(next==='paused')$('pause').hidden=false;if(next==='playing')$('hud').hidden=false;if(next==='lost'||next==='won')$('result').hidden=false;if(next!=='playing'){input?.releasePointerLock();$('danger').style.opacity=0}if(next!=='caught'){$('danger').style.backgroundColor='transparent';$('danger').style.boxShadow=''}if(next!=='inventory')inventoryUI?.close();if(next!=='caught')sound.setState(next==='inventory'?'paused':next,{silent:previous==='caught'&&next==='lost'})}
 function requestMouse(){input?.requestPointerLock()}
+function toggleInvulnerability(){
+ if(state!=='playing')return;
+ invulnerable=!invulnerable;
+ if(invulnerable)usedInvulnerability=true;
+ notice(invulnerable?'無敵モード ON':'無敵モード OFF',3);
+}
+function recoverInvulnerable(cause){
+ const warning=cause==='infection';
+ const outside=FORBIDDEN_ROOM.safeOutside;
+ const safe=warning&&nav.canWalk(...outside)?outside:nav.point(nav.start);
+ if(warning)infectionSequence?.reset();
+ player=[...safe];fall=null;qaRoute=null;operationTime=0;
+ const area=nav.regionAt(...player);if(area!==stageIndex)setArea(area);
+ camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;
+ setState('playing');
+ notice(warning?'無敵モード：警告の部屋の外へ戻った。':'無敵モード：安全な床へ戻った。',4);
+ updateHUD();
+}
 function activateStage(index, breakerCheckpoint){
  stageIndex=index;stage=world.stages[index];nav=world.nav;fall=null;
  player=nav.point(nav.start);yaw=stage.spawnYaw;pitch=0;collected.clear();
@@ -126,7 +144,9 @@ function setArea(index){
 }
 
 function start(options={}){if(!world||!bacteria||renderingUnavailable)return;
+ invulnerable=false;
  const breakerCheckpoint=options.resumeBreakers&&state==='lost'?{restored:objective.state.restored??objective.breakers.filter(b=>objective.isRestored(b.id)).map(b=>b.id),pried:jam.pried}:null;
+ if(!breakerCheckpoint)usedInvulnerability=false;
  deathSequence?.reset();infectionSequence?.reset();sound.stopCue('chant');sound.init();sound.setVolume(+$('volume').value/100);difficulty=$('difficulty').value;quality=$('quality').value;motion=$('motion').checked;elapsed=0;stamina=100;sprintReady=true;footClock=0;camera.fov=74;flash=false;qaRoute=null;qaMessage='';inventory.reset();itemSlots?.reset();glimpse.reset();activateStage(0,breakerCheckpoint);if(options?.showAwakening){awakening??=createAwakening({document,window,onFinish:finishAwakening});setState('awakening');awakening.start()}else{setState('playing');notice(breakerCheckpoint?.restored.length?'復旧済みの配電盤はそのまま。懐中電灯は前方の床に落ちている。':'前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);requestMouse();updateHUD()}}
 function finishAwakening(userGesture=false){if(state!=='awakening')return;camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;setState('playing');notice('前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);if(userGesture)requestMouse();updateHUD()}
 function pause(){if(state==='playing'){operationTime=0;if($('pause-description'))$('pause-description').textContent='敵も時間も、止まっています。';setState('paused')}}
@@ -291,7 +311,7 @@ function showStruggle(visible){
  if(visible&&$('struggle-fill')){$('struggle-fill').style.width='0%';$('struggle-bar')?.setAttribute('aria-valuenow','0')}
 }
 function beginCapture(actor='bacteria'){
- if(state!=='playing'||elapsed<graceUntil)return;
+ if(invulnerable||state!=='playing'||elapsed<graceUntil)return;
  if(actor==='bacteria'){if(hazmatModel)hazmatModel.visible=false;if(skinModel)skinModel.visible=false}
  skinCaptureActor=actor;captureTime=0;qaRoute=null;sound.cue(actor==='skinstealer'?'skin_voice':'capture');
  sound.setLoop?.('chase_bgm',0,.3);
@@ -342,6 +362,7 @@ function breakFree(){
 function finish(won,cause='bacteria'){
  if(!won){
   if(state==='death-transition'||state==='lost')return;
+  if(invulnerable){recoverInvulnerable(cause);return;}
   pendingDeath=cause;qaRoute=null;setState('death-transition');
   if(deathSequence){deathSequence.reset();deathSequence.start()}else completeDeath();
   return;
@@ -360,7 +381,7 @@ function completeEscape(){
  $('result-stats').textContent=`ESCAPED / ${formatTime(elapsed)}`;
  if($('result-detail'))$('result-detail').textContent=`ブレーカー ${total} / ${total}　・　拾った水 ${water?.pickups.filter(p=>p.collected).length??0} 本`;
  $('result').style.background='#06120b70';$('result').style.backdropFilter='blur(1px)';
- try{let key='backrooms-wide-world-best-'+difficulty,prev=+localStorage.getItem(key)||Infinity;if(elapsed<prev)localStorage.setItem(key,elapsed.toFixed(2));$('result-stats').textContent+=`　BEST ${formatTime(Math.min(prev,elapsed))}`}catch{}
+ if(!usedInvulnerability)try{let key='backrooms-wide-world-best-'+difficulty,prev=+localStorage.getItem(key)||Infinity;if(elapsed<prev)localStorage.setItem(key,elapsed.toFixed(2));$('result-stats').textContent+=`　BEST ${formatTime(Math.min(prev,elapsed))}`}catch{}
 }
 function completeDeath(){
  if(state!=='death-transition')return;
@@ -620,7 +641,7 @@ function tick(now){
      const target=locker.locker.approach,dx=target[0]-player[0],dz=target[1]-player[1],d=Math.hypot(dx,dz),move=Math.min(d,2.4*step);
      if(d>1e-6)nav.move(player,dx/d*move,dz/d*move);
     }
-    if(!locker?.hidden&&enemy?.active&&encounter.captureReady&&Math.hypot(player[0]-enemy.pos[0],player[1]-enemy.pos[1])<ENEMY_BEHAVIOR.captureRange&&nav.visible(player,enemy.pos)){beginCapture();break}
+    if(!invulnerable&&!locker?.hidden&&enemy?.active&&encounter.captureReady&&Math.hypot(player[0]-enemy.pos[0],player[1]-enemy.pos[1])<ENEMY_BEHAVIOR.captureRange&&nav.visible(player,enemy.pos)){beginCapture();break}
     let s=settings[difficulty],stepMoving=false,stepRunning=false;const beforePlayer=[...player];
     if(locker?.movementLocked||!simulateQA(step)){
      const forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS'));
@@ -643,7 +664,7 @@ function tick(now){
     if(state==='playing'&&skinDirector){
      const previous=skinState?.phase,nearBacteria=enemy.active&&Math.hypot(player[0]-enemy.pos[0],player[1]-enemy.pos[1])<10;
      const witnessTarget=locker?.hidden?locker.witnesses.find(w=>w.id==='skinstealer')?.position:null;
-     if(elapsed>=skinStunUntil)skinState=skinDirector.update({dt:step,player,running:stepRunning,hidden:!!locker?.hidden,witnessTarget,mayNotice:!nearBacteria||!!witnessTarget});
+     if(elapsed>=skinStunUntil)skinState=skinDirector.update({dt:step,player,running:stepRunning,hidden:!!locker?.hidden,witnessTarget,canCapture:!invulnerable,mayNotice:!nearBacteria||!!witnessTarget});
      if(previous==='human'&&skinState.phase==='transforming'){sound.cue('transform');notice('防護服の人物が、こちらに気づいた。逃げろ。',3)}
      if(skinState.caught)beginCapture('skinstealer');
     }
@@ -726,7 +747,7 @@ function tick(now){
 }
 $('start').onclick=()=>{if(state!=='menu')return;if(!introSequence){start();return}setState('intro');if(!introSequence.start({volume:+$('volume').value/100}))start()};$('resume').onclick=resume;$('retry').onclick=()=>start({resumeBreakers:true});$('retry-pause').onclick=start;$('title-pause').onclick=title;$('title-result').onclick=title;$('credits-open').onclick=()=>{$('credits').hidden=false};$('credits-close').onclick=()=>{$('credits').hidden=true};
 input=createGameInput({document,window,canvas,keys,getState:()=>state,
- actions:{collect,struggle:struggleTap,selectSlot:index=>itemSlots?.select(index),useSelectedSlot,toggleFlash,toggleMap:()=>{$('map-wrap').hidden=!$('map-wrap').hidden;drawMap()},
+ actions:{collect,toggleInvulnerability,struggle:struggleTap,selectSlot:index=>itemSlots?.select(index),useSelectedSlot,toggleFlash,toggleMap:()=>{$('map-wrap').hidden=!$('map-wrap').hidden;drawMap()},
   openInventory,closeInventory,pause,exitFullscreen:()=>{if(document.fullscreenElement===document.documentElement)try{document.exitFullscreen?.()?.catch?.(()=>{})}catch{}},closeCredits:()=>{if($('credits').hidden)return false;$('credits').hidden=true;return true}},
  onLook:(dx,dy)=>{yaw+=dx*.0022;pitch=Math.max(-1.25,Math.min(1.25,pitch-dy*.0022));const h=hiding?.state;if(h?.hidden&&h.locker){const d=Math.atan2(Math.sin(yaw-h.locker.facingYaw),Math.cos(yaw-h.locker.facingYaw));yaw=h.locker.facingYaw+Math.max(-.28,Math.min(.28,d));pitch=Math.max(-.10,Math.min(.10,pitch))}},
  onPointerFailure:()=>notice('画面をドラッグ、または矢印キーで視点を操作できます。',7)

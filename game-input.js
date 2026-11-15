@@ -4,6 +4,9 @@ const RESERVED_KEYS = new Set(['Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'Arro
 const HELD_KEYS = new Set(['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown',
   'ArrowLeft', 'ArrowRight', 'ShiftLeft', 'ShiftRight', 'KeyE']);
 
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft',
+  'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
 function isEditable(target) {
   return !!target && (target.isContentEditable ||
     ['INPUT', 'TEXTAREA', 'SELECT'].includes(String(target.tagName).toUpperCase()) ||
@@ -21,6 +24,7 @@ export function createGameInput({document, window, canvas, keys = new Set(), get
   actions = {}, onLook = () => {}, onPointerFailure = () => {}}) {
   let generation = 0, pending = null, acceptedLock = false, releasing = false;
   let dragging = false, disposed = false;
+  const recentKeys = [];
   const removers = [];
   const listen = (target, type, listener, lockLifecycle = false) => {
     target.addEventListener(type, listener);
@@ -37,6 +41,7 @@ export function createGameInput({document, window, canvas, keys = new Set(), get
 
   function clear() {
     keys.clear();
+    recentKeys.length = 0;
     dragging = false;
     // A pending acquisition belongs to the state in which it was requested.
     // Keeping the pending object serializes requests until the browser answers.
@@ -147,6 +152,17 @@ export function createGameInput({document, window, canvas, keys = new Set(), get
     if (event.repeat) return;
     const slot=/^(?:Digit|Numpad)([1-4])$/.exec(event.code);
     const unmodified=!event.ctrlKey&&!event.altKey&&!event.metaKey&&!event.isComposing;
+    if (unmodified) {
+      recentKeys.push(event.code);
+      if (recentKeys.length > KONAMI.length) recentKeys.shift();
+      if (recentKeys.length === KONAMI.length && KONAMI.every((code,i) => code === recentKeys[i])) {
+        recentKeys.length = 0;
+        keys.delete(event.code);
+        event.preventDefault();
+        actions.toggleInvulnerability?.();
+        return;
+      }
+    }
     if (slot && unmodified) {event.preventDefault();actions.selectSlot?.(Number(slot[1])-1);}
     else if (event.code === 'KeyQ' && unmodified) {event.preventDefault();actions.useSelectedSlot?.();}
     else if (event.code === 'KeyI') actions.openInventory?.();
