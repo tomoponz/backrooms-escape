@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import {AUTO_PICKUP_RANGE,collectNearbyFloorItems} from '../floor-pickup.js';
 import {createInventory} from '../inventory.js';
 import {createFlashlightPickup,FLASHLIGHT_ID} from '../flashlight-pickup.js';
 import {createAlmondWaterPickups,registerAlmondWater,ALMOND_WATER_ID} from '../almond-water.js';
@@ -116,5 +117,37 @@ test('a full inventory leaves water on the floor and reset allows another run',(
  assert.equal(water.pickups[0].collected,false);
  assert.equal(water.models[0].visible,true);
  assert.equal(water.collect([2,0]).ok,true);
+ assert.equal(inventory.count(ALMOND_WATER_ID),1);
+});
+
+test('automatic flashlight collection waits for approach, checks walls and does not turn it on',()=>{
+ const {pickup,nav,block,unblock,inventory}=flashlightFixture();
+ const items={flashlight:pickup};
+ assert.equal(collectNearbyFloorItems(nav.point(nav.start),items).light,null);
+ assert.equal(collectNearbyFloorItems([AUTO_PICKUP_RANGE+.01,0],items).light,null);
+ block([0,0]);
+ assert.equal(collectNearbyFloorItems([.6,0],items).light,null);
+ unblock([0,0]);
+ assert.equal(collectNearbyFloorItems([AUTO_PICKUP_RANGE,0],items).light?.ok,true);
+ assert.equal(pickup.state.on,false);
+ assert.equal(collectNearbyFloorItems([0,0],items).light,null);
+ assert.equal(inventory.count(FLASHLIGHT_ID),1);
+ pickup.dispose();
+});
+
+test('automatic water respects capacity and leaves bottles on the floor behind walls',()=>{
+ const {water,inventory,block,unblock}=waterFixture();
+ const pick=()=>collectNearbyFloorItems([0,0],{
+   water,canCarryWater:inventory.count(ALMOND_WATER_ID)<3,
+ }).drink;
+ inventory.add(ALMOND_WATER_ID,3);
+ assert.equal(pick(),null);
+ assert.equal(water.pickups[0].collected,false);
+ inventory.reset();
+ block([0,0]);
+ assert.equal(pick(),null);
+ unblock([0,0]);
+ assert.equal(pick()?.ok,true);
+ assert.equal(pick(),null);
  assert.equal(inventory.count(ALMOND_WATER_ID),1);
 });

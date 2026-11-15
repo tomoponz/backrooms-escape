@@ -1,3 +1,4 @@
+import {collectNearbyFloorItems} from './floor-pickup.js';
 import {Renderer,M,V} from './engine.js';
 import {beginModelLoadBatch,endModelLoadBatch} from './model-source.js';
 import {formatTime} from './core.js';
@@ -11,7 +12,7 @@ import {createInventory,createInventoryPanel} from './inventory.js';
 import {createItemSlots} from './item-slots.js';
 import {loadIntroConfig,createIntroSequence,createAwakening} from './intro.js';
 import {createEscapeObjective} from './escape-objective.js';
-import {ALMOND_WATER_ID,ALMOND_WATER_RESTORE,ALMOND_WATER_MODEL_URL,registerAlmondWater,createAlmondWaterPickups} from './almond-water.js';
+import {ALMOND_WATER_ID,ALMOND_WATER_MAX_STACK,ALMOND_WATER_RESTORE,ALMOND_WATER_MODEL_URL,registerAlmondWater,createAlmondWaterPickups} from './almond-water.js';
 import {createEnemyDirector,ENEMY_BEHAVIOR} from './enemy-director.js';
 import {createEncounterDirector} from './encounter-director.js';
 import {createSkinstealerDirector} from './skinstealer-director.js';
@@ -147,8 +148,8 @@ function start(options={}){if(!world||!bacteria||renderingUnavailable)return;
  invulnerable=false;
  const breakerCheckpoint=options.resumeBreakers&&state==='lost'?{restored:objective.state.restored??objective.breakers.filter(b=>objective.isRestored(b.id)).map(b=>b.id),pried:jam.pried}:null;
  if(!breakerCheckpoint)usedInvulnerability=false;
- deathSequence?.reset();infectionSequence?.reset();sound.stopCue('chant');sound.init();sound.setVolume(+$('volume').value/100);difficulty=$('difficulty').value;quality=$('quality').value;motion=$('motion').checked;elapsed=0;stamina=100;sprintReady=true;footClock=0;camera.fov=74;flash=false;qaRoute=null;qaMessage='';inventory.reset();itemSlots?.reset();glimpse.reset();activateStage(0,breakerCheckpoint);if(options?.showAwakening){awakening??=createAwakening({document,window,onFinish:finishAwakening});setState('awakening');awakening.start()}else{setState('playing');notice(breakerCheckpoint?.restored.length?'復旧済みの配電盤はそのまま。懐中電灯は前方の床に落ちている。':'前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);requestMouse();updateHUD()}}
-function finishAwakening(userGesture=false){if(state!=='awakening')return;camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;setState('playing');notice('前方の床に懐中電灯が落ちている。近づいて E で拾い、F で点ける。',9);if(userGesture)requestMouse();updateHUD()}
+ deathSequence?.reset();infectionSequence?.reset();sound.stopCue('chant');sound.init();sound.setVolume(+$('volume').value/100);difficulty=$('difficulty').value;quality=$('quality').value;motion=$('motion').checked;elapsed=0;stamina=100;sprintReady=true;footClock=0;camera.fov=74;flash=false;qaRoute=null;qaMessage='';inventory.reset();itemSlots?.reset();glimpse.reset();activateStage(0,breakerCheckpoint);if(options?.showAwakening){awakening??=createAwakening({document,window,onFinish:finishAwakening});setState('awakening');awakening.start()}else{setState('playing');notice(breakerCheckpoint?.restored.length?'復旧済みの配電盤はそのまま。懐中電灯は前方の床に落ちている。':'前方の懐中電灯は、近づくと拾える。F で点灯。',9);requestMouse();updateHUD()}}
+function finishAwakening(userGesture=false){if(state!=='awakening')return;camera.eye=[player[0],nav.floorAt(...player)+1.62,player[1]];camera.yaw=yaw;camera.pitch=pitch;setState('playing');notice('前方の懐中電灯は、近づくと拾える。F で点灯。',9);if(userGesture)requestMouse();updateHUD()}
 function pause(){if(state==='playing'){operationTime=0;if($('pause-description'))$('pause-description').textContent='敵も時間も、止まっています。';setState('paused')}}
 function openInventory(){if(state!=='playing'||!inventoryUI)return;operationTime=0;setState('inventory');inventoryUI.open()}
 function closeInventory(){if(state!=='inventory')return;inventoryUI.close();setState('playing');requestMouse()}
@@ -181,6 +182,14 @@ function escapeWarningRoom({wasFullscreen=false}={}){
  player[0]=p[0];player[1]=p[1];yaw=0;pitch=0;
  if(exitFullscreen){setState('paused');if($('pause-description'))$('pause-description').textContent='警告を中断して部屋の外へ戻りました。再開できます。'}
  else{setState('playing');notice('警告を中断し、部屋の外へ戻った。',4);requestMouse()}
+}
+function collectFloorOnApproach(){
+ const {light,drink}=collectNearbyFloorItems(player,{flashlight:flashlightPickup,water,
+  canCarryWater:inventory.count(ALMOND_WATER_ID)<ALMOND_WATER_MAX_STACK});
+ if(light||drink){
+  notice(light&&drink?'懐中電灯とアーモンドウォーターを拾った。F で点灯。':light?'懐中電灯を拾った。F で点灯・消灯。':drink.message,5);
+  updateHUD();
+ }
 }
 function collect(){
  if(state!=='playing')return;
@@ -413,14 +422,14 @@ function updateHUD(){
  {const text=objective.status();if($('objective-label').textContent!==text){$('objective-label').textContent=text;objectiveShownAt=elapsed}$('objective')?.classList?.toggle('quiet',elapsed-objectiveShownAt>16)}
  $('bearing').textContent=status.doorOpened?'草地の先にある暗い場所へ歩いて進む。':status.powerRestored?'床の矢印が出口まで続いている。':status.doorExamined||restored?'床の矢印が、いちばん近い配電盤へ続いている。':'床の矢印をたどって出口へ。';
  const observation=observations?.nearest(player);
- let prompt=near?.prompt||(pickup?'[ E ] アーモンド・ウォーターを拾う':observation?'[ E ] 周囲を確かめる':'');
+ let prompt=near?.prompt||(pickup?(inventory.count(ALMOND_WATER_ID)>=ALMOND_WATER_MAX_STACK?'アーモンドウォーターは満杯':'アーモンドウォーターに近づく / [ E ] で拾う'):observation?'[ E ] 周囲を確かめる':'');
  if(near&&objective.isBreaker(near.id)&&!objective.isRestored(near.id))prompt=isJammed(near.id)?(!hasCrowbar()?'[ E ] 配電盤のカバーを調べる':jam.progress>0?`[ E ] バールでこじ開けている… ${Math.min(100,Math.round(jam.progress/1.1*100))}%`:'[ E 長押し ] バールでカバーをこじ開ける'):operationTime>0?`[ E ] ブレーカーを上げている… ${Math.min(100,Math.round(operationTime/1.2*100))}%`:'[ E 長押し ] ブレーカーを上げる';
  if(!prompt&&!near&&!pickup&&dressing?.nearestBox(player))prompt='[ E ] 段ボールを調べる';
  if(jam.known&&!jam.pried&&!hasCrowbar())$('bearing').textContent='歪んだカバーをこじ開ける道具が要る。床の矢印が、段ボールへ続いている。';
  const lockerState=hiding?.state;
  if(lockerState?.phase==='hidden')prompt='[ E ] ロッカーから出る';
  else if(lockerState?.movementLocked)prompt='[ E ] 動作を中断';
- else if(!near&&flashlightPickup?.nearest(player))prompt='[ E ] 懐中電灯を拾う';
+ else if(!near&&flashlightPickup?.nearest(player))prompt='懐中電灯に近づく / [ E ] で拾う';
  else if(!near&&!pickup&&hiding?.nearest(player))prompt='[ E ] ロッカーに隠れる';
  if($('interaction').dataset)$('interaction').dataset.kind=near?(objective.isBreaker(near.id)?'breaker':near.id):(pickup?'pickup':'');
  $('interaction').textContent=prompt;$('interaction').style.display=prompt?'block':'none';
@@ -530,7 +539,7 @@ function presentGuidance(now){
  if(flashlightPickup&&!flashlightPickup.state.owned){
   const p=flashlightPickup.state.position,d=Math.hypot(p[0]-player[0],p[1]-player[1]),floor=flashlightPickup.state.floor;
   if(d<16){overlayItems.push(glow(p,floor+.16,.5,[1,.93,.7],.55),{kind:1,center:[p[0],floor+.03,p[1]],u:[.5,0,0],v:[0,0,.5],color:[1,.93,.7,.7],additive:.9,phase:(now/1000*.6)%1})}
-  if(d<7&&nav.visible(player,p)){const at=screenPoint(p,floor+.42),w=canvas.clientWidth||1280,h=canvas.clientHeight||720;if(at&&at.x>w*.1&&at.x<w*.9&&at.y>h*.16&&at.y<h*.8)labels.push({...at,text:'懐中電灯 / E で拾う'})}
+  if(d<7&&nav.visible(player,p)){const at=screenPoint(p,floor+.42),w=canvas.clientWidth||1280,h=canvas.clientHeight||720;if(at&&at.x>w*.1&&at.x<w*.9&&at.y>h*.16&&at.y<h*.8)labels.push({...at,text:'懐中電灯 / 近づくと拾える'})}
  }
  markerElements.forEach((el,i)=>{const item=labels[i];el.hidden=!item;if(!item)return;if(el.textContent!==item.text)el.textContent=item.text;el.className='field-marker supply equipment';el.style.left=item.x+'px';el.style.top=item.y+'px'});
 }
@@ -668,7 +677,7 @@ function tick(now){
      if(previous==='human'&&skinState.phase==='transforming'){sound.cue('transform');notice('防護服の人物が、こちらに気づいた。逃げろ。',3)}
      if(skinState.caught)beginCapture('skinstealer');
     }
-    if(state==='playing'&&!locker?.movementLocked){updateOperation(step);updateReturnHint();const arrival=objective.update(player);if(arrival)applyInteraction(arrival)}
+    if(state==='playing'&&!locker?.movementLocked){collectFloorOnApproach();updateOperation(step);updateReturnHint();const arrival=objective.update(player);if(arrival)applyInteraction(arrival)}
    }
    if(state==='playing'){
     if(stepSound)sound.step({running});
