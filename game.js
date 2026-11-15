@@ -691,7 +691,7 @@ function tick(now){
     if(state==='playing'&&skinDirector){
      const previous=skinState?.phase,nearBacteria=enemy.active&&Math.hypot(player[0]-enemy.pos[0],player[1]-enemy.pos[1])<10;
      const witnessTarget=locker?.hidden?locker.witnesses.find(w=>w.id==='skinstealer')?.position:null;
-     if(elapsed>=skinStunUntil)skinState=skinDirector.update({dt:step,player,running:stepRunning,hidden:!!locker?.hidden,witnessTarget,canCapture:!invulnerable,mayNotice:!nearBacteria||!!witnessTarget});
+     if(elapsed>=skinStunUntil)skinState=skinDirector.update({dt:step,player,running:stepRunning,hidden:!!locker?.hidden,witnessTarget,canCapture:!invulnerable,mayNotice:!nearBacteria||!!witnessTarget||(difficulty==='normal'&&enemy.mode!=='chase'),powerRestored:previous==='human'&&difficulty==='normal'&&objective.breakers.every(b=>objective.isRestored(b.id))});
      if(previous==='human'&&skinState.phase==='transforming'){sound.cue('transform');notice('防護服の人物が、こちらに気づいた。逃げろ。',3)}
      if(skinState.caught)beginCapture('skinstealer');
     }
@@ -828,7 +828,7 @@ async function load(){
  wallWriting=await createWallWriting(renderer);
  warningRoom=await createWarningRoomVisual(renderer,sourceScene);
  warningWallRepair=createForbiddenRoomWallRepair(renderer,sourceScene);
- nav=world.nav;bustPyramid=createBustPyramid({model:bustModel,nav,addBounds:({world,nav,position,material})=>createBustWorldBoundaries({world,nav,center:position,material})});bustModel.visible=false;objective=createEscapeObjective(nav,world.targets);registerAlmondWater(inventory);water=createAlmondWaterPickups({inventory,model:waterModel,nav,viaIndex:objective.maintenance.i});observations=createEnvironmentObservations(nav,{supplies:water.pickups});exploration=createExplorationJournal({nav,objective,water,explored,discovered});skinDirector=createSkinstealerDirector({nav});initializeMarkers();
+ nav=world.nav;bustPyramid=createBustPyramid({model:bustModel,nav,addBounds:({world,nav,position,material})=>createBustWorldBoundaries({world,nav,center:position,material})});bustModel.visible=false;objective=createEscapeObjective(nav,world.targets);registerAlmondWater(inventory);water=createAlmondWaterPickups({inventory,model:waterModel,nav,viaIndex:objective.maintenance.i});observations=createEnvironmentObservations(nav,{supplies:water.pickups});exploration=createExplorationJournal({nav,objective,water,explored,discovered});const exitHazmat=world.layout.anchors.exitHazmat;skinDirector=createSkinstealerDirector({nav,normalStation:exitHazmat&&{position:[exitHazmat.position[0],exitHazmat.position[2]],yaw:exitHazmat.yaw}});initializeMarkers();
  guidance=createGuidance({nav});
  try{watchers=createWatchers({model:bustModel,nav})}catch(error){console.warn('Watcher busts unavailable.',error)}
  try{straySigns=createStraySigns(warningRoom.catalog)}catch(error){console.warn('Stray signs unavailable.',error)}

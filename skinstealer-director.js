@@ -18,18 +18,20 @@ const turn = (yaw,target,amount) => yaw + Math.max(-amount,Math.min(amount,Math.
 const copy = p => [p[0],p[1]];
 
 /**
- * createSkinstealerDirector({nav,spawn?,patrol?})
+ * createSkinstealerDirector({nav,spawn?,patrol?,normalStation?})
  * patrol: array of world [x,z] points, defaulting to a route wholly within
  * the original-far-west room. Points resolve to physically supported cells.
  * reset('normal'|'easy'|'explore') restores a single dormant human; explore
- * disables the complete encounter. Call update only during actual gameplay.
+ * disables the complete encounter. If supplied, normalStation is a stationary
+ * human in standard mode, with transformation locked until powerRestored.
+ * Call update only during actual gameplay.
  *
  * update({dt,player,running,mayNotice?,canCapture?}) returns an immutable snapshot with phase,
  * position, yaw, mode, movementSpeed, collapse, humanAlpha, monsterAlpha,
  * sees, heard and caught. caught fires at most once until reset. The caller
  * is responsible for drawing, reacting to capture, and disposing GPU assets.
  */
-export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) {
+export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL,normalStation}={}) {
   if (!nav || !['nearest','open','point','path','move','visible','canWalk'].every(k=>typeof nav[k]==='function'))
     throw new TypeError('Skinstealer requires physical world navigation');
   if (!Array.isArray(patrol) || !patrol.length || !patrol.every(pointValid))
@@ -51,6 +53,9 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
   return {release,i,position:copy(q)};
   };
   const points=patrol.map(resolve), initial=resolve(spawn??patrol[0]);
+  const station=normalStation?resolve(normalStation.position):null;
+  if(station && !nav.path(station.i,initial.i).length)
+    throw new Error('Skinstealer exit station is disconnected');
   // A broken authored route must not silently produce a static or teleported NPC.
   for(let i=0;i<points.length;i++) if(!nav.path(points[i].i,points[(i+1)%points.length].i).length)
     throw new Error('Skinstealer authored patrol is disconnected');
@@ -59,10 +64,10 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
   const enemy={pos:copy(initial.position),yaw:0,active:false,mode:'dormant',lastKnown:null,memory:0};
   const humanPath = {cursor:0,route:[],goal:-1};
   const monsterNav=Object.create(nav);
-  monsterNav.start=initial.i;monsterNav.exit=initial.i;monsterNav.patrol=points.map(x=>x.i);
-  const brain=createEnemyDirector({nav:monsterNav,enemy,seed:0x51A57E});
+  let brain;
   let phase='disabled',difficulty='normal',phaseTime=0,elapsed=0,lastSpeed=0,seen=false,heard=false,captureLatched=false;
   let witnessedLocker=null,witnessReached=false;
+  const stationed=()=>difficulty==='normal'&&station!==null;
   function canSeePlayer(player) {
     if (!pointValid(player)) return false;
     if (phase==='human'||phase==='transforming') return distance(enemy.pos,player)<=SKINSTEALER_RULES.noticeDistance && nav.visible(enemy.pos,player);
@@ -81,9 +86,12 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
     difficulty=nextDifficulty==='easy'?'easy':nextDifficulty==='explore'?'explore':'normal';
     phase=difficulty==='explore'?'disabled':'human';phaseTime=0;elapsed=0;lastSpeed=0;seen=false;heard=false;captureLatched=false;
     witnessedLocker=null;witnessReached=false;
-    enemy.pos=copy(initial.position);enemy.yaw=0;enemy.active=false;enemy.mode='dormant';enemy.lastKnown=null;enemy.memory=0;
+    const origin=stationed()?station:initial;
+    enemy.pos=copy(origin.position);enemy.yaw=stationed()?(normalStation.yaw??0):0;enemy.active=false;enemy.mode='dormant';enemy.lastKnown=null;enemy.memory=0;
+    monsterNav.start=origin.i;monsterNav.exit=origin.i;monsterNav.patrol=stationed()?[]:points.map(x=>x.i);
+    brain=createEnemyDirector({nav:monsterNav,enemy,seed:0x51A57E});
     humanPath.cursor=0;humanPath.route=[];humanPath.goal=-1;
-    if(phase==='human')setHumanTarget();
+    if(phase==='human'&&!stationed())setHumanTarget();
     return snapshot(false);
   }
   function patrolStep(dt) {
@@ -107,7 +115,7 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
       collapse,humanAlpha,monsterAlpha,movementSpeed:lastSpeed,sees:seen,heard,caught,elapsed,
       lastKnown:pointValid(enemy.lastKnown)?copy(enemy.lastKnown):null,witnessReached});
   }
-  function update({dt,player,running=false,mayNotice=true,hidden=false,witnessTarget=null,canCapture=true}={}) {
+  function update({dt,player,running=false,mayNotice=true,hidden=false,witnessTarget=null,canCapture=true,powerRestored=false}={}) {
     if(!Number.isFinite(dt)||dt<=0||phase==='disabled')return snapshot(false);
     if(!hidden){witnessedLocker=null;witnessReached=false;}
     else if(!witnessedLocker&&pointValid(witnessTarget))witnessedLocker=copy(witnessTarget);
@@ -115,13 +123,16 @@ export function createSkinstealerDirector({nav,spawn,patrol=DEFAULT_PATROL}={}) 
     let caught=false;
     if(phase==='human'){
       // The person notices only an actually reachable, visible nearby player.
-      if(mayNotice&&(hidden&&witnessedLocker||!hidden&&canSeePlayer(player))){
+      // A stationary human may wait for both restored power and a safe
+      // moment to reveal. The full collapse and escape grace still apply.
+      const ready=mayNotice&&(!stationed()||powerRestored);
+      if(ready&&(hidden&&witnessedLocker||!hidden&&canSeePlayer(player))){
         // Face the actually observed player once. During collapse and after
         // sight is broken this angle is not updated from hidden positions.
         const observed=hidden?witnessedLocker:player;
         enemy.yaw=Math.atan2(observed[0]-enemy.pos[0],observed[1]-enemy.pos[1]);
         phase='transforming';phaseTime=0;enemy.mode='transforming';
-      } else lastSpeed=patrolStep(step);
+      } else if(!stationed()) lastSpeed=patrolStep(step);
     } else if(phase==='transforming'){
       if(phaseTime>=SKINSTEALER_RULES.transformSeconds){phase='grace';phaseTime=0;brain.activate();}
     } else if(phase==='grace'||phase==='monster'){

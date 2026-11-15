@@ -172,6 +172,8 @@ export const SOURCE_WORLD_LAYOUT = {
     enemy:{position:[-58,0,7],yaw:0,instanceId:'original-west'},
     maintenance:{position:[-24.05,0,14.1],yaw:-Math.PI/2,instanceId:'baked'},
     exit:{position:[11.5,0,-8.1],yaw:Math.PI/2,instanceId:'original-east'},
+    // Interior wall beside the exit, clear of the doorway and its approach.
+    exitHazmat:{position:[11.88,0,-11.07],yaw:-Math.PI/4,instanceId:'original-east'},
     // Approach the existing dark Dreamcore plane from its walkable front.
     // The source plane is solid artwork, not a claimed passage or door.
     escape:{position:[65.34,3.717,37.53],yaw:Math.PI,instanceId:'dreamcore'},
